@@ -1,0 +1,59 @@
+name: "🐞 Bug report"
+description: "Report a bug or unexpected behavior in the app."
+title: "[BUG] Short description here"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!  
+        Please fill out the details below so we can better understand and fix the issue.
+  - type: input
+    id: summary
+    attributes:
+      label: "Summary"
+      description: "Briefly describe the issue."
+      placeholder: "e.g. Filter button not working"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "List the steps to reproduce the issue."
+      placeholder: |
+        1. Go to the 'Statistics' page  
+        2. Click the 'Filter' button  
+        3. Observe the behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      placeholder: "What should have happened?"
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual Behavior"
+      placeholder: "What actually happened?"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      options:
+        - Low
+        - Medium
+        - High
+      default: 1
+  - type: input
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "Where did you experience this issue?"
+      placeholder: "Chrome 128 / Windows 11"
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Additional Notes / Screenshots"
+      description: "Add any extra context, screenshots, or console errors here."
