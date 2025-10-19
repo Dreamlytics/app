@@ -10,7 +10,17 @@ const loginSchema = z.object({
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
-    const { email, password } = loginSchema.parse(body);
+    
+    // Validate input
+    const validation = loginSchema.safeParse(body);
+    if (!validation.success) {
+      throw createError({
+        statusCode: 400,
+        message: 'Invalid email or password format'
+      });
+    }
+    
+    const { email, password } = validation.data;
 
     // Find user
     // @ts-ignore - Mongoose type inference issue
@@ -54,12 +64,6 @@ export default defineEventHandler(async (event) => {
       }
     };
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-      throw createError({
-        statusCode: 400,
-        message: 'Invalid input data'
-      });
-    }
     throw error;
   }
 });
