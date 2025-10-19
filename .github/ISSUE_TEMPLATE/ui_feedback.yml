@@ -46,4 +46,4 @@ body:
     attributes:
       label: "Environment"
       description: "Where did you notice this issue?"
-      placeholder: "Browser / OS /
+      placeholder: "Browser / OS /"
