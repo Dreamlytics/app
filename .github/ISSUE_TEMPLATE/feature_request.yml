@@ -1,0 +1,54 @@
+name: "🚀 Feature request"
+description: "Suggest a new feature or improvement for the app."
+title: "[FEATURE] Short description here"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature!  
+        Please provide as much detail as possible to help us understand your idea.
+  - type: input
+    id: summary
+    attributes:
+      label: "Summary"
+      description: "Briefly describe the feature or improvement."
+      placeholder: "e.g. Allow login with email or username"
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Why is this feature needed? What problem does it solve?"
+      placeholder: "Explain what issue or user need this feature addresses."
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: "Proposed Solution / Description"
+      description: "Describe how you think the feature should work."
+      placeholder: "How would the user use it? What should it do?"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives Considered"
+      description: "Have you considered other approaches or workarounds?"
+      placeholder: "List any alternative solutions or related ideas."
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority"
+      options:
+        - Low
+        - Medium
+        - High
+      default: 1
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Additional Notes / Mockups"
+      description: "Add screenshots, sketches, or any other helpful context."
