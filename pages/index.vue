@@ -9,6 +9,12 @@
 
           <div class="nav-actions">
             <template v-if="isAuthenticated">
+              <NuxtLink to="/extract" class="btn btn-secondary">
+                🎭 Extract
+              </NuxtLink>
+              <NuxtLink to="/analyze" class="btn btn-accent">
+                🔮 Analyze
+              </NuxtLink>
               <NuxtLink to="/dreams/new" class="btn btn-primary">
                 ➕ New Dream
               </NuxtLink>

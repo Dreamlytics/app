@@ -20,3 +20,4 @@ echo "🚀 Starting Nuxt development server..."
 echo ""
 
 npm run dev
+    

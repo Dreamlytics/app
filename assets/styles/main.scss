@@ -83,6 +83,21 @@ button, .btn {
     }
   }
 
+  &.btn-accent {
+    background: linear-gradient(135deg, $accent, $secondary);
+    color: white;
+    box-shadow: $shadow-md;
+
+    &:hover {
+      box-shadow: $shadow-glow;
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;

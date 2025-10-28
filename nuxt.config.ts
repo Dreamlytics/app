@@ -27,6 +27,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/dreamlytics',
+    openrouterApiKey: process.env.OPENROUTER_API_KEY || '',
     public: {
       apiBase: '/api'
     }
