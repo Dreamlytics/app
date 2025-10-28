@@ -79,6 +79,18 @@
             </label>
           </div>
 
+          <div class="ai-section">
+            <button
+              type="button"
+              @click="handleAIAnalysis"
+              class="btn btn-accent"
+              :disabled="!form.content || aiLoading"
+            >
+              {{ aiLoading ? '🤖 Analyzing...' : '🤖 Get AI Insights' }}
+            </button>
+            <p class="ai-helper">Automatically extract motifs and generate analysis</p>
+          </div>
+
           <div class="form-actions">
             <button type="button" @click="goBack" class="btn btn-secondary">
               Cancel
@@ -96,22 +108,32 @@
 </template>
 
 <script setup lang="ts">
+import { useAnalyze } from '~/composables/useAnalyze';
+import { useExtract } from '~/composables/useExtract';
+
 const route = useRoute();
 const router = useRouter();
 const { createDream, updateDream, fetchDream, currentDream } = useDreams();
 const { isAuthenticated } = useAuth();
+const { analyzing, analyzeDream } = useAnalyze();
+const { extracting, extractMotifsAndEmotions } = useExtract();
 
 const isEditing = computed(() => !!route.params.id);
 const loading = ref(false);
 const error = ref('');
 const tagInput = ref('');
+const aiLoading = computed(() => analyzing.value || extracting.value);
 
 const form = reactive({
   title: '',
   date: new Date().toISOString().split('T')[0],
   content: '',
   tags: [] as string[],
-  isPublic: false
+  isPublic: false,
+  aiAnalysis: '',
+  aiMotifs: [] as string[],
+  aiEmotions: [] as string[],
+  emotionalIntensity: undefined as number | undefined
 });
 
 onMounted(async () => {
@@ -144,6 +166,46 @@ const addTag = () => {
 
 const removeTag = (index: number) => {
   form.tags.splice(index, 1);
+};
+
+const handleAIAnalysis = async () => {
+  if (!form.content) return;
+
+  try {
+    // Get AI analysis
+    const analysis = await analyzeDream({
+      dreamContent: form.content,
+      dreamTitle: form.title || undefined,
+      tags: form.tags
+    });
+
+    if (analysis) {
+      form.aiAnalysis = analysis;
+    }
+
+    // Get motifs and emotions
+    const extraction = await extractMotifsAndEmotions({
+      dreamContent: form.content,
+      dreamTitle: form.title || undefined,
+      existingTags: form.tags
+    });
+
+    if (extraction) {
+      form.aiMotifs = extraction.motifs;
+      form.aiEmotions = extraction.emotions;
+      form.emotionalIntensity = extraction.emotionalIntensity;
+      
+      // Add extracted motifs to tags if not already present
+      extraction.motifs.forEach(motif => {
+        const normalizedMotif = motif.toLowerCase();
+        if (!form.tags.includes(normalizedMotif)) {
+          form.tags.push(normalizedMotif);
+        }
+      });
+    }
+  } catch (e: any) {
+    error.value = 'Failed to get AI insights';
+  }
 };
 
 const handleSubmit = async () => {
@@ -316,6 +378,27 @@ const goBack = () => {
     .icon {
       font-size: 1.2rem;
     }
+  }
+}
+
+.ai-section {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.05), rgba(72, 209, 204, 0.05));
+  border: 2px dashed rgba(138, 43, 226, 0.3);
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  text-align: center;
+
+  .btn {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: $spacing-sm;
+  }
+
+  .ai-helper {
+    color: $text-muted;
+    font-size: 0.875rem;
+    margin: 0;
   }
 }
 

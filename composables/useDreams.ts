@@ -5,6 +5,10 @@ export interface Dream {
   date: Date | string;
   tags: string[];
   isPublic: boolean;
+  aiAnalysis?: string;
+  aiMotifs?: string[];
+  aiEmotions?: string[];
+  emotionalIntensity?: number;
   author?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -17,6 +21,10 @@ export interface CreateDreamData {
   date: Date | string;
   tags: string[];
   isPublic: boolean;
+  aiAnalysis?: string;
+  aiMotifs?: string[];
+  aiEmotions?: string[];
+  emotionalIntensity?: number;
 }
 
 export const useDreams = () => {

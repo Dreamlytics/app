@@ -95,6 +95,35 @@
               {{ truncate(dream.content, 150) }}
             </p>
 
+            <div v-if="dream.aiAnalysis" class="ai-interpretation">
+              <div class="ai-header">
+                <span class="ai-badge">🤖 AI Insight</span>
+              </div>
+              <p class="ai-text">{{ truncate(dream.aiAnalysis, 200) }}</p>
+            </div>
+
+            <div v-if="dream.aiMotifs && dream.aiMotifs.length > 0" class="ai-motifs">
+              <span class="motif-label">Motifs:</span>
+              <span
+                v-for="motif in dream.aiMotifs.slice(0, 5)"
+                :key="motif"
+                class="ai-tag"
+              >
+                {{ motif }}
+              </span>
+            </div>
+
+            <div v-if="dream.aiEmotions && dream.aiEmotions.length > 0" class="ai-emotions">
+              <span class="emotion-label">Emotions:</span>
+              <span
+                v-for="emotion in dream.aiEmotions"
+                :key="emotion"
+                class="emotion-tag"
+              >
+                {{ emotion }}
+              </span>
+            </div>
+
             <div class="dream-tags">
               <span
                 v-for="tag in dream.tags"
@@ -321,6 +350,76 @@ const truncate = (text: string, length: number) => {
     line-height: 1.6;
     margin-bottom: $spacing-lg;
     flex: 1;
+  }
+
+  .ai-interpretation {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.05), rgba(72, 209, 204, 0.05));
+    border-left: 3px solid $primary;
+    padding: $spacing-md;
+    margin-bottom: $spacing-md;
+    border-radius: $radius-md;
+
+    .ai-header {
+      margin-bottom: $spacing-xs;
+    }
+
+    .ai-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, $primary, $secondary);
+      color: white;
+      padding: 2px $spacing-sm;
+      border-radius: $radius-sm;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .ai-text {
+      color: $text-primary;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin: 0;
+      font-style: italic;
+    }
+  }
+
+  .ai-motifs,
+  .ai-emotions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+    align-items: center;
+    margin-bottom: $spacing-sm;
+
+    .motif-label,
+    .emotion-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: $text-muted;
+      margin-right: $spacing-xs;
+    }
+  }
+
+  .ai-tag {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.15), rgba(138, 43, 226, 0.25));
+    border: 1px solid rgba(138, 43, 226, 0.3);
+    color: $primary-light;
+    padding: 2px $spacing-sm;
+    border-radius: $radius-sm;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .emotion-tag {
+    background: linear-gradient(135deg, rgba(255, 105, 180, 0.15), rgba(255, 105, 180, 0.25));
+    border: 1px solid rgba(255, 105, 180, 0.3);
+    color: $accent;
+    padding: 2px $spacing-sm;
+    border-radius: $radius-sm;
+    font-size: 0.8rem;
+    font-weight: 500;
   }
 
   .dream-tags {

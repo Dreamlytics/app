@@ -7,6 +7,10 @@ export interface IDream extends Document {
   date: Date;
   tags: string[];
   isPublic: boolean;
+  aiAnalysis?: string;
+  aiMotifs?: string[];
+  aiEmotions?: string[];
+  emotionalIntensity?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +43,24 @@ const dreamSchema = new Schema<IDream>({
   isPublic: {
     type: Boolean,
     default: false
+  },
+  aiAnalysis: {
+    type: String,
+    default: null
+  },
+  aiMotifs: [{
+    type: String,
+    trim: true
+  }],
+  aiEmotions: [{
+    type: String,
+    trim: true
+  }],
+  emotionalIntensity: {
+    type: Number,
+    min: 0,
+    max: 10,
+    default: null
   },
   createdAt: {
     type: Date,
