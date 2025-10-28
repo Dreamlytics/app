@@ -82,7 +82,7 @@ Respond ONLY with valid JSON in this exact format:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
+        model: 'mistralai/mistral-7b-instruct:free',
         messages: [
           {
             role: 'user',
@@ -96,9 +96,20 @@ Respond ONLY with valid JSON in this exact format:
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      
+      // Better error messages for common issues
+      let errorMessage = 'Failed to extract motifs and emotions';
+      if (response.status === 429) {
+        errorMessage = 'Rate limit reached. Please wait a moment and try again.';
+      } else if (response.status === 401) {
+        errorMessage = 'Invalid API key. Please check your OpenRouter configuration.';
+      } else if (errorData.error?.message) {
+        errorMessage = errorData.error.message;
+      }
+      
       throw createError({
         statusCode: response.status,
-        message: errorData.error?.message || 'Failed to extract motifs and emotions'
+        message: errorMessage
       });
     }
 
