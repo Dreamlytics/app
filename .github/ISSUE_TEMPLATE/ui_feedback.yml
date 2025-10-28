@@ -1,0 +1,54 @@
+name: "🎨 UI / Design feedback"
+description: "Report a visual issue or suggest an improvement to the design or layout."
+title: "[UI] Short description here"
+labels: ["ui", "design"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to report any visual or layout issues (e.g., misaligned elements, colors, spacing, fonts, etc.)  
+        or to suggest improvements to the overall design.
+  - type: input
+    id: summary
+    attributes:
+      label: "Summary"
+      description: "Briefly describe the UI problem or improvement."
+      placeholder: "e.g. Button not centered properly"
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: "Current Appearance / Behavior"
+      placeholder: "Describe how it looks or behaves right now."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Appearance / Suggestion"
+      placeholder: "Describe how it should look or what you suggest instead."
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: "Type of Issue"
+      options:
+        - Alignment / Layout
+        - Colors / Styling
+        - Fonts / Text
+        - Spacing / Padding / Margins
+        - Responsiveness
+        - Other
+  - type: input
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "Where did you notice this issue?"
+      placeholder: "Browser / OS / Screen size"
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Additional Notes / Screenshots"
+      description: "Add screenshots or context if possible."
