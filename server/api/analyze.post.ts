@@ -59,7 +59,7 @@ Keep the analysis thoughtful, empathetic, and insightful.`;
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'minimax/minimax-m2:free',
+        model: 'nousresearch/hermes-3-llama-3.1-405b:free',
         messages: [
           {
             role: 'user',

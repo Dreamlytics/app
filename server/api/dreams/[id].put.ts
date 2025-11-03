@@ -7,7 +7,11 @@ const updateDreamSchema = z.object({
   content: z.string().min(1).optional(),
   date: z.string().or(z.date()).optional(),
   tags: z.array(z.string()).optional(),
-  isPublic: z.boolean().optional()
+  isPublic: z.boolean().optional(),
+  aiAnalysis: z.string().optional(),
+  aiMotifs: z.array(z.string()).optional(),
+  aiEmotions: z.array(z.string()).optional(),
+  emotionalIntensity: z.number().min(1).max(10).optional()
 });
 
 export default defineEventHandler(async (event) => {
@@ -45,11 +49,15 @@ export default defineEventHandler(async (event) => {
     }
 
     // Update dream
-    if (updateData.title) dream.title = updateData.title;
-    if (updateData.content) dream.content = updateData.content;
-    if (updateData.date) dream.date = new Date(updateData.date);
-    if (updateData.tags) dream.tags = updateData.tags.map(tag => tag.toLowerCase().trim());
+    if (updateData.title !== undefined) dream.title = updateData.title;
+    if (updateData.content !== undefined) dream.content = updateData.content;
+    if (updateData.date !== undefined) dream.date = new Date(updateData.date);
+    if (updateData.tags !== undefined) dream.tags = updateData.tags.map(tag => tag.toLowerCase().trim());
     if (updateData.isPublic !== undefined) dream.isPublic = updateData.isPublic;
+    if (updateData.aiAnalysis !== undefined) dream.aiAnalysis = updateData.aiAnalysis;
+    if (updateData.aiMotifs !== undefined) dream.aiMotifs = updateData.aiMotifs;
+    if (updateData.aiEmotions !== undefined) dream.aiEmotions = updateData.aiEmotions;
+    if (updateData.emotionalIntensity !== undefined) dream.emotionalIntensity = updateData.emotionalIntensity;
 
     await dream.save();
 
@@ -62,6 +70,10 @@ export default defineEventHandler(async (event) => {
         date: dream.date,
         tags: dream.tags,
         isPublic: dream.isPublic,
+        aiAnalysis: dream.aiAnalysis,
+        aiMotifs: dream.aiMotifs,
+        aiEmotions: dream.aiEmotions,
+        emotionalIntensity: dream.emotionalIntensity,
         createdAt: dream.createdAt,
         updatedAt: dream.updatedAt
       }

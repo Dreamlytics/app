@@ -294,7 +294,7 @@ const goBack = () => {
 .tags-list {
   display: flex;
   flex-wrap: wrap;
-  gap: $spacing-xs;
+  gap: 6px;
   margin-bottom: $spacing-xs;
 }
 
@@ -404,7 +404,7 @@ const goBack = () => {
 
 .form-actions {
   display: flex;
-  gap: $spacing-md;
+  gap: 10px;
   margin-top: $spacing-xl;
 
   button {

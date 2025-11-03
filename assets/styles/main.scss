@@ -127,6 +127,16 @@ input, textarea, select {
   }
 }
 
+// Fix date picker colors for dark theme
+input[type="date"] {
+  color-scheme: dark;
+  
+  &::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+  }
+}
+
 textarea {
   resize: vertical;
   min-height: 120px;

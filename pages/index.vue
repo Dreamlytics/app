@@ -99,7 +99,7 @@
               <div class="ai-header">
                 <span class="ai-badge">🤖 AI Insight</span>
               </div>
-              <p class="ai-text">{{ truncate(dream.aiAnalysis, 200) }}</p>
+              <div class="ai-text" v-html="formatAIAnalysis(dream.aiAnalysis, 200)"></div>
             </div>
 
             <div v-if="dream.aiMotifs && dream.aiMotifs.length > 0" class="ai-motifs">
@@ -195,6 +195,16 @@ const truncate = (text: string, length: number) => {
   if (text.length <= length) return text;
   return text.substring(0, length) + '...';
 };
+
+const formatAIAnalysis = (text: string, maxLength: number) => {
+  const truncated = truncate(text, maxLength);
+  // Format numbered lists and paragraphs
+  return truncated
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>')
+    .replace(/(\d+\.\s)/g, '<br><strong>$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+};
 </script>
 
 <style scoped lang="scss">
@@ -225,7 +235,7 @@ const truncate = (text: string, length: number) => {
 
   .nav-actions {
     display: flex;
-    gap: $spacing-md;
+    gap: 10px;
   }
 }
 
@@ -388,7 +398,7 @@ const truncate = (text: string, length: number) => {
   .ai-emotions {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-xs;
+    gap: 6px;
     align-items: center;
     margin-bottom: $spacing-sm;
 
@@ -425,7 +435,7 @@ const truncate = (text: string, length: number) => {
   .dream-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: $spacing-xs;
+    gap: 6px;
     margin-bottom: $spacing-lg;
 
     .tag {
@@ -440,7 +450,7 @@ const truncate = (text: string, length: number) => {
 
   .dream-actions {
     display: flex;
-    gap: $spacing-sm;
+    gap: 8px;
     padding-top: $spacing-md;
     border-top: 1px solid $bg-tertiary;
 
