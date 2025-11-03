@@ -1,6 +1,10 @@
 <template>
   <div class="analyze-page gradient-bg">
     <div class="container">
+      <button @click="goBack" class="back-button">
+        ← Back
+      </button>
+      
       <div class="card">
         <h1>🔮 Dream Analysis</h1>
         <p class="subtitle">Get AI-powered insights into your dreams</p>
@@ -86,12 +90,34 @@ const formatAnalysis = (text: string) => {
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>');
 };
+
+const router = useRouter();
+const goBack = () => {
+  router.back();
+};
 </script>
 
 <style scoped lang="scss">
 .analyze-page {
   min-height: 100vh;
   padding: $spacing-xl;
+}
+
+.back-button {
+  background: $bg-secondary;
+  color: $text-primary;
+  border: 1px solid $bg-tertiary;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: $spacing-lg;
+  transition: all $transition-base;
+
+  &:hover {
+    background: $bg-tertiary;
+    transform: translateX(-4px);
+  }
 }
 
 .container {

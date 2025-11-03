@@ -139,6 +139,22 @@
                 View
               </NuxtLink>
               <template v-if="dream.isOwner">
+                <button 
+                  @click="handleAnalyzeDream(dream)" 
+                  class="btn btn-accent" 
+                  :disabled="analyzingDreamId === dream.id"
+                  v-if="!dream.aiAnalysis"
+                >
+                  {{ analyzingDreamId === dream.id ? '⏳ Analyzing...' : '🔮 Analyze' }}
+                </button>
+                <button 
+                  @click="handleAnalyzeDream(dream)" 
+                  class="btn btn-accent"
+                  :disabled="analyzingDreamId === dream.id"
+                  v-else
+                >
+                  {{ analyzingDreamId === dream.id ? '⏳ Analyzing...' : '🔄 Re-analyze' }}
+                </button>
                 <NuxtLink :to="`/dreams/${dream.id}/edit`" class="btn btn-secondary">
                   Edit
                 </NuxtLink>
@@ -204,6 +220,51 @@ const formatAIAnalysis = (text: string, maxLength: number) => {
     .replace(/\n/g, '<br>')
     .replace(/(\d+\.\s)/g, '<br><strong>$1</strong>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+};
+
+const { analyzeDream } = useAnalyze();
+const { extractMotifsAndEmotions } = useExtract();
+const { updateDream } = useDreams();
+
+const analyzingDreamId = ref<string | null>(null);
+
+const handleAnalyzeDream = async (dream: any) => {
+  if (analyzingDreamId.value) return; // Prevent multiple simultaneous analyses
+  
+  analyzingDreamId.value = dream.id;
+  
+  try {
+    // Get AI analysis
+    const analysis = await analyzeDream({
+      dreamContent: dream.content,
+      dreamTitle: dream.title,
+      tags: dream.tags
+    });
+
+    // Get motifs and emotions
+    const extraction = await extractMotifsAndEmotions({
+      dreamContent: dream.content,
+      dreamTitle: dream.title,
+      existingTags: dream.tags
+    });
+
+    // Update the dream with AI data
+    if (analysis || extraction) {
+      await updateDream(dream.id, {
+        aiAnalysis: analysis || undefined,
+        aiMotifs: extraction?.motifs,
+        aiEmotions: extraction?.emotions,
+        emotionalIntensity: extraction?.emotionalIntensity
+      });
+      
+      // Refresh the dreams list
+      await fetchDreams();
+    }
+  } catch (e: any) {
+    alert('Failed to analyze dream: ' + (e.message || 'Unknown error'));
+  } finally {
+    analyzingDreamId.value = null;
+  }
 };
 </script>
 

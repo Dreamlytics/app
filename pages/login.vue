@@ -9,12 +9,12 @@
 
         <form @submit.prevent="handleLogin" class="auth-form">
           <div class="form-group">
-            <label for="email">Email</label>
+            <label for="emailOrUsername">Email or Username</label>
             <input
-              id="email"
-              v-model="email"
-              type="email"
-              placeholder="your@email.com"
+              id="emailOrUsername"
+              v-model="emailOrUsername"
+              type="text"
+              placeholder="your@email.com or username"
               required
             />
           </div>
@@ -49,7 +49,7 @@
 const { login } = useAuth();
 const router = useRouter();
 
-const email = ref('');
+const emailOrUsername = ref('');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
@@ -59,7 +59,7 @@ const handleLogin = async () => {
   error.value = '';
   
   try {
-    await login(email.value, password.value);
+    await login(emailOrUsername.value, password.value);
     router.push('/');
   } catch (e: any) {
     error.value = e.data?.message || 'Failed to login';

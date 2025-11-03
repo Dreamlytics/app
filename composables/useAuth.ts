@@ -20,10 +20,10 @@ export const useAuth = () => {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (emailOrUsername: string, password: string) => {
     const response = await $fetch<{ success: boolean; user: User }>('/api/auth/login', {
       method: 'POST',
-      body: { email, password }
+      body: { emailOrUsername, password }
     });
     user.value = response.user;
     return response;

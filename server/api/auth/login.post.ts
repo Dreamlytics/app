@@ -3,7 +3,7 @@ import { User } from '~/server/models/User';
 import { generateToken } from '~/server/utils/auth';
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  emailOrUsername: z.string().min(1, 'Email or username is required'),
   password: z.string()
 });
 
@@ -16,15 +16,23 @@ export default defineEventHandler(async (event) => {
     if (!validation.success) {
       throw createError({
         statusCode: 400,
-        message: 'Invalid email or password format'
+        message: 'Invalid input format'
       });
     }
     
-    const { email, password } = validation.data;
+    const { emailOrUsername, password } = validation.data;
 
-    // Find user
+    // Find user by email or username
+    // Check if input is an email format
+    const isEmail = emailOrUsername.includes('@');
+    
     // @ts-ignore - Mongoose type inference issue
-    const user = await User.findOne({ email });
+    const user = await User.findOne(
+      isEmail 
+        ? { email: emailOrUsername.toLowerCase() }
+        : { name: emailOrUsername }
+    );
+    
     if (!user) {
       throw createError({
         statusCode: 401,
