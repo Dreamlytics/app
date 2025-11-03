@@ -1,13 +1,17 @@
 import { z } from 'zod';
 import { requireAuth } from '~/server/utils/auth';
+import { AILog } from '~/server/models/AILog';
 
 const extractSchema = z.object({
   dreamContent: z.string().min(10),
   dreamTitle: z.string().optional(),
-  existingTags: z.array(z.string()).optional()
+  existingTags: z.array(z.string()).optional(),
+  dreamId: z.string().optional()
 });
 
 export default defineEventHandler(async (event) => {
+  const startTime = Date.now();
+  
   try {
     // Require authentication
     const user = await requireAuth(event);
@@ -24,7 +28,7 @@ export default defineEventHandler(async (event) => {
       });
     }
     
-    const { dreamContent, dreamTitle, existingTags } = validation.data;
+    const { dreamContent, dreamTitle, existingTags, dreamId } = validation.data;
     const config = useRuntimeConfig();
     
     if (!config.openrouterApiKey) {
@@ -142,24 +146,78 @@ Respond ONLY with valid JSON in this exact format:
       });
     }
 
+    const processingTime = Date.now() - startTime;
+    const extractionData = {
+      motifs: extracted.motifs || [],
+      emotions: extracted.emotions || [],
+      emotionalIntensity: extracted.emotionalIntensity || 5,
+      primaryTheme: extracted.primaryTheme || '',
+      symbolism: extracted.symbolism || [],
+      archetypes: extracted.archetypes || [],
+      lucidityLevel: extracted.lucidityLevel || 0
+    };
+
+    const usageData = {
+      promptTokens: data.usage?.prompt_tokens,
+      completionTokens: data.usage?.completion_tokens,
+      totalTokens: data.usage?.total_tokens
+    };
+
+    // Log extraction to database
+    try {
+      // @ts-ignore - Mongoose type inference issue
+      await AILog.create({
+        userId: user.userId,
+        dreamId: dreamId || undefined,
+        operation: 'extract',
+        aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+        requestData: {
+          dreamTitle,
+          dreamContent,
+          tags: existingTags
+        },
+        responseData: extractionData,
+        usage: usageData,
+        success: true,
+        processingTime
+      });
+    } catch (logError) {
+      console.error('Failed to log extraction:', logError);
+    }
+
     return {
       success: true,
-      data: {
-        motifs: extracted.motifs || [],
-        emotions: extracted.emotions || [],
-        emotionalIntensity: extracted.emotionalIntensity || 5,
-        primaryTheme: extracted.primaryTheme || '',
-        symbolism: extracted.symbolism || [],
-        archetypes: extracted.archetypes || [],
-        lucidityLevel: extracted.lucidityLevel || 0
-      },
-      usage: {
-        promptTokens: data.usage?.prompt_tokens,
-        completionTokens: data.usage?.completion_tokens,
-        totalTokens: data.usage?.total_tokens
-      }
+      data: extractionData,
+      usage: usageData
     };
   } catch (error: any) {
+    // Log failed extraction
+    const processingTime = Date.now() - startTime;
+    try {
+      const user = await requireAuth(event).catch(() => null);
+      if (user) {
+        const body = await readBody(event).catch(() => ({}));
+        // @ts-ignore - Mongoose type inference issue
+        await AILog.create({
+          userId: user.userId,
+          dreamId: body.dreamId || undefined,
+          operation: 'extract',
+          aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+          requestData: {
+            dreamTitle: body.dreamTitle,
+            dreamContent: body.dreamContent,
+            tags: body.existingTags
+          },
+          responseData: {},
+          success: false,
+          errorMessage: error.message || 'Unknown error',
+          processingTime
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     throw error;
   }
 });

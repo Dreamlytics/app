@@ -2,6 +2,7 @@ export interface ExtractRequest {
   dreamContent: string;
   dreamTitle?: string;
   existingTags?: string[];
+  dreamId?: string;
 }
 
 export interface Symbolism {

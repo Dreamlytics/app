@@ -1,13 +1,19 @@
 import { z } from 'zod';
 import { requireAuth } from '~/server/utils/auth';
+import { AILog } from '~/server/models/AILog';
 
 const analyzeSchema = z.object({
   dreamContent: z.string().min(10),
   dreamTitle: z.string().optional(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
+  dreamId: z.string().optional(),
+  isRefresh: z.boolean().optional()
 });
 
 export default defineEventHandler(async (event) => {
+  const startTime = Date.now();
+  let logData: any = null;
+  
   try {
     // Require authentication
     const user = await requireAuth(event);
@@ -24,7 +30,7 @@ export default defineEventHandler(async (event) => {
       });
     }
     
-    const { dreamContent, dreamTitle, tags } = validation.data;
+    const { dreamContent, dreamTitle, tags, dreamId, isRefresh } = validation.data;
     const config = useRuntimeConfig();
     
     if (!config.openrouterApiKey) {
@@ -100,16 +106,71 @@ Keep the analysis thoughtful, empathetic, and insightful.`;
       });
     }
 
+    const processingTime = Date.now() - startTime;
+    const usageData = {
+      promptTokens: data.usage?.prompt_tokens,
+      completionTokens: data.usage?.completion_tokens,
+      totalTokens: data.usage?.total_tokens
+    };
+
+    // Log AI analysis to database
+    try {
+      // @ts-ignore - Mongoose type inference issue
+      await AILog.create({
+        userId: user.userId,
+        dreamId: dreamId || undefined,
+        operation: isRefresh ? 'refresh' : 'analyze',
+        aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+        requestData: {
+          dreamTitle,
+          dreamContent,
+          tags
+        },
+        responseData: {
+          analysis
+        },
+        usage: usageData,
+        success: true,
+        processingTime
+      });
+    } catch (logError) {
+      console.error('Failed to log AI analysis:', logError);
+      // Don't fail the request if logging fails
+    }
+
     return {
       success: true,
       analysis,
-      usage: {
-        promptTokens: data.usage?.prompt_tokens,
-        completionTokens: data.usage?.completion_tokens,
-        totalTokens: data.usage?.total_tokens
-      }
+      usage: usageData
     };
   } catch (error: any) {
+    // Log failed analysis attempt
+    const processingTime = Date.now() - startTime;
+    try {
+      const user = await requireAuth(event).catch(() => null);
+      if (user) {
+        const body = await readBody(event).catch(() => ({}));
+        // @ts-ignore - Mongoose type inference issue
+        await AILog.create({
+          userId: user.userId,
+          dreamId: body.dreamId || undefined,
+          operation: 'analyze',
+          aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+          requestData: {
+            dreamTitle: body.dreamTitle,
+            dreamContent: body.dreamContent,
+            tags: body.tags
+          },
+          responseData: {},
+          success: false,
+          errorMessage: error.message || 'Unknown error',
+          processingTime
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     throw error;
   }
 });

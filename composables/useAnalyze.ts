@@ -2,6 +2,8 @@ export interface AnalyzeRequest {
   dreamContent: string;
   dreamTitle?: string;
   tags?: string[];
+  dreamId?: string;
+  isRefresh?: boolean;
 }
 
 export interface AnalyzeResponse {

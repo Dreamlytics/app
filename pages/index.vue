@@ -148,12 +148,13 @@
                   {{ analyzingDreamId === dream.id ? '⏳ Analyzing...' : '🔮 Analyze' }}
                 </button>
                 <button 
-                  @click="handleAnalyzeDream(dream)" 
+                  @click="handleRefreshInterpretation(dream)" 
                   class="btn btn-accent"
                   :disabled="analyzingDreamId === dream.id"
                   v-else
+                  title="Refresh AI interpretation"
                 >
-                  {{ analyzingDreamId === dream.id ? '⏳ Analyzing...' : '🔄 Re-analyze' }}
+                  {{ analyzingDreamId === dream.id ? '⏳ Refreshing...' : '🔄 Refresh' }}
                 </button>
                 <NuxtLink :to="`/dreams/${dream.id}/edit`" class="btn btn-secondary">
                   Edit
@@ -238,14 +239,16 @@ const handleAnalyzeDream = async (dream: any) => {
     const analysis = await analyzeDream({
       dreamContent: dream.content,
       dreamTitle: dream.title,
-      tags: dream.tags
+      tags: dream.tags,
+      dreamId: dream.id
     });
 
     // Get motifs and emotions
     const extraction = await extractMotifsAndEmotions({
       dreamContent: dream.content,
       dreamTitle: dream.title,
-      existingTags: dream.tags
+      existingTags: dream.tags,
+      dreamId: dream.id
     });
 
     // Update the dream with AI data
@@ -262,6 +265,52 @@ const handleAnalyzeDream = async (dream: any) => {
     }
   } catch (e: any) {
     alert('Failed to analyze dream: ' + (e.message || 'Unknown error'));
+  } finally {
+    analyzingDreamId.value = null;
+  }
+};
+
+const handleRefreshInterpretation = async (dream: any) => {
+  if (analyzingDreamId.value) return;
+  
+  if (!confirm('This will generate a new AI interpretation. Continue?')) {
+    return;
+  }
+  
+  analyzingDreamId.value = dream.id;
+  
+  try {
+    // Get fresh AI analysis with isRefresh flag
+    const analysis = await analyzeDream({
+      dreamContent: dream.content,
+      dreamTitle: dream.title,
+      tags: dream.tags,
+      dreamId: dream.id,
+      isRefresh: true
+    });
+
+    // Get fresh motifs and emotions
+    const extraction = await extractMotifsAndEmotions({
+      dreamContent: dream.content,
+      dreamTitle: dream.title,
+      existingTags: dream.tags,
+      dreamId: dream.id
+    });
+
+    // Update the dream with fresh AI data
+    if (analysis || extraction) {
+      await updateDream(dream.id, {
+        aiAnalysis: analysis || undefined,
+        aiMotifs: extraction?.motifs,
+        aiEmotions: extraction?.emotions,
+        emotionalIntensity: extraction?.emotionalIntensity
+      });
+      
+      // Refresh the dreams list
+      await fetchDreams();
+    }
+  } catch (e: any) {
+    alert('Failed to refresh interpretation: ' + (e.message || 'Unknown error'));
   } finally {
     analyzingDreamId.value = null;
   }
