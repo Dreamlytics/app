@@ -49,7 +49,9 @@ export default defineEventHandler(async (event) => {
       title: dream.title,
       date: dream.date,
       likeCount: dream.likeCount || 0,
-      isLikedByMe: user ? dream.likes.some((id: any) => id.toString() === user.userId) : false,
+      isLikedByMe: user && Array.isArray(dream.likes)
+        ? dream.likes.some((id: any) => id.toString() === user.userId)
+        : false,
       motifs: dream.aiMotifs || [],
       emotions: dream.aiEmotions || [],
       // Don't expose userId directly, just indicate if it's available
