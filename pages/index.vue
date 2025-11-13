@@ -16,12 +16,6 @@
 
           <div class="nav-actions" :class="{ 'mobile-open': isMenuOpen }">
             <template v-if="isAuthenticated">
-              <NuxtLink to="/app" class="btn btn-accent" @click="closeMenu">
-                📱 WebView
-              </NuxtLink>
-              <NuxtLink to="/mobile-test" class="btn btn-accent" @click="closeMenu">
-                🧪 Test
-              </NuxtLink>
               <NuxtLink to="/public/feed" class="btn btn-secondary" @click="closeMenu">
                 🌐 Feed
               </NuxtLink>
