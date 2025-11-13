@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OpenRouter } from '@openrouter/sdk';
 import { requireAuth } from '~/server/utils/auth';
 import { AILog } from '~/server/models/AILog';
 
@@ -12,16 +13,14 @@ const analyzeSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const startTime = Date.now();
-  let logData: any = null;
-  
+
   try {
-    // Require authentication
     const user = await requireAuth(event);
-    
     const body = await readBody(event);
-    
-    // Validate input
     const validation = analyzeSchema.safeParse(body);
+
+    
+
     if (!validation.success) {
       throw createError({
         statusCode: 400,
@@ -29,10 +28,10 @@ export default defineEventHandler(async (event) => {
         data: validation.error.errors
       });
     }
-    
+
     const { dreamContent, dreamTitle, tags, dreamId, isRefresh } = validation.data;
     const config = useRuntimeConfig();
-    
+
     if (!config.openrouterApiKey) {
       throw createError({
         statusCode: 500,
@@ -40,12 +39,17 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Prepare the prompt for dream analysis
+    const openRouter = new OpenRouter({
+      apiKey: config.openrouterApiKey,
+    });
+
+    console.log(config.openrouterApiKey);
+
     const prompt = `You are a professional dream analyst. Analyze the following dream and provide insights about its possible meanings, symbolism, and psychological significance.
 
 ${dreamTitle ? `Dream Title: ${dreamTitle}\n` : ''}
 Dream Content: ${dreamContent}
-${tags && tags.length > 0 ? `Tags: ${tags.join(', ')}\n` : ''}
+${tags?.length ? `Tags: ${tags.join(', ')}\n` : ''}
 
 Please provide a comprehensive yet concise analysis covering:
 1. Overall interpretation (2-3 paragraphs)
@@ -55,150 +59,55 @@ Please provide a comprehensive yet concise analysis covering:
 
 Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete all sections fully.`;
 
-    // Call OpenRouter API with timeout handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
-    
-    let response;
-    try {
-      response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.openrouterApiKey}`,
-          'HTTP-Referer': 'https://dreamlytics.app',
-          'X-Title': 'Dreamlytics',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-exp:free',
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2500  // Increased from 1500 to prevent cutoff
-        }),
-        signal: controller.signal
-      });
-    } catch (fetchError: any) {
-      clearTimeout(timeoutId);
-      if (fetchError.name === 'AbortError') {
-        throw createError({
-          statusCode: 504,
-          message: 'Request timeout. The AI service took too long to respond. Please try again.'
-        });
-      }
-      throw createError({
-        statusCode: 503,
-        message: 'Failed to connect to AI service. Please try again.'
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
+    const completion = await openRouter.chat.send({
+      model: 'meta-llama/llama-3.3-8b-instruct:free',
+      messages: [{ role: 'user', content: prompt }],
+      stream: false
+    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Log the full error for debugging
-      console.error('OpenRouter API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData
-      });
-      
-      // Better error messages for common issues
-      let errorMessage = 'Failed to analyze dream';
-      let statusCode = response.status;
-      
-      if (response.status === 429) {
-        errorMessage = 'Rate limit reached. Please wait a moment and try again.';
-      } else if (response.status === 400) {
-        errorMessage = errorData.error?.message || 'Invalid request. Please check your dream content.';
-      } else if (response.status === 401) {
-        errorMessage = 'Invalid API key. Please check your OpenRouter configuration.';
-      } else if (response.status === 502 || response.status === 503 || response.status === 504) {
-        errorMessage = 'AI service temporarily unavailable. Please try again in a few seconds.';
-        statusCode = 503;
-      } else if (errorData.error?.message) {
-        errorMessage = errorData.error.message;
-      }
-      
-      throw createError({
-        statusCode,
-        message: errorMessage
-      });
-    }
-
-    const data = await response.json();
-    const analysis = data.choices?.[0]?.message?.content;
-    const finishReason = data.choices?.[0]?.finish_reason;
+    const analysis = completion.choices?.[0]?.message?.content;
+    const finishReason = completion.choices?.[0]?.finishReason;
 
     if (!analysis) {
-      throw createError({
-        statusCode: 500,
-        message: 'No analysis generated'
-      });
+      throw createError({ statusCode: 500, message: 'No analysis generated' });
     }
 
-    // Check if response was cut off due to token limit
     if (finishReason === 'length') {
-      console.warn('AI response was truncated due to max_tokens limit');
-      // Add a note to the analysis that it was truncated
-      // User will still get the response but we log the issue
+      console.warn('AI response was truncated due to token limit');
     }
 
-    const processingTime = Date.now() - startTime;
-    const usageData = {
-      promptTokens: data.usage?.prompt_tokens,
-      completionTokens: data.usage?.completion_tokens,
-      totalTokens: data.usage?.total_tokens
-    };
+    const usage = completion.usage;
 
-    // Log AI analysis to database
     try {
-      // @ts-ignore - Mongoose type inference issue
-      await AILog.create({
+      const log = new AILog({
         userId: user.userId,
         dreamId: dreamId || undefined,
         operation: isRefresh ? 'refresh' : 'analyze',
-        aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
-        requestData: {
-          dreamTitle,
-          dreamContent,
-          tags
-        },
-        responseData: {
-          analysis
-        },
-        usage: usageData,
+  aiModel: 'meta-llama/llama-3.3-8b-instruct:free',
+        requestData: { dreamTitle, dreamContent, tags },
+        responseData: { analysis },
+        usage,
         success: true,
-        processingTime
+        processingTime: Date.now() - startTime
       });
+      await log.save();
     } catch (logError) {
       console.error('Failed to log AI analysis:', logError);
-      // Don't fail the request if logging fails
     }
 
-    return {
-      success: true,
-      analysis,
-      usage: usageData
-    };
+    return { success: true, analysis, usage };
   } catch (error: any) {
-    // Log failed analysis attempt
     const processingTime = Date.now() - startTime;
+
     try {
       const user = await requireAuth(event).catch(() => null);
+      const body = await readBody(event).catch(() => ({}));
       if (user) {
-        const body = await readBody(event).catch(() => ({}));
-        // @ts-ignore - Mongoose type inference issue
-        await AILog.create({
+        const log = new AILog({
           userId: user.userId,
           dreamId: body.dreamId || undefined,
           operation: 'analyze',
-          aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+          aiModel: 'meta-llama/llama-3.3-8b-instruct:free',
           requestData: {
             dreamTitle: body.dreamTitle,
             dreamContent: body.dreamContent,
@@ -209,11 +118,12 @@ Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete al
           errorMessage: error.message || 'Unknown error',
           processingTime
         });
+        await log.save();
       }
     } catch (logError) {
       console.error('Failed to log error:', logError);
     }
-    
+
     throw error;
   }
 });

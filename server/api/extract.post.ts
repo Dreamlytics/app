@@ -1,11 +1,13 @@
 import { z } from 'zod';
+import { OpenRouter } from '@openrouter/sdk'; // Importáljuk az SDK-t
 import { requireAuth } from '~/server/utils/auth';
 import { AILog } from '~/server/models/AILog';
 
+// Az eredeti 'extract' séma
 const extractSchema = z.object({
   dreamContent: z.string().min(10),
   dreamTitle: z.string().optional(),
-  existingTags: z.array(z.string()).optional(),
+  existingTags: z.array(z.string()).optional(), // Megtartjuk az 'existingTags'-t
   dreamId: z.string().optional()
 });
 
@@ -13,12 +15,12 @@ export default defineEventHandler(async (event) => {
   const startTime = Date.now();
   
   try {
-    // Require authentication
+    // Authentikáció (mint 'analyze')
     const user = await requireAuth(event);
     
     const body = await readBody(event);
     
-    // Validate input
+    // Validáció (mint 'analyze', de az 'extract' sémával)
     const validation = extractSchema.safeParse(body);
     if (!validation.success) {
       throw createError({
@@ -28,6 +30,7 @@ export default defineEventHandler(async (event) => {
       });
     }
     
+    // Változók az 'extract' sémából
     const { dreamContent, dreamTitle, existingTags, dreamId } = validation.data;
     const config = useRuntimeConfig();
     
@@ -38,7 +41,13 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Sophisticated prompt for motif and emotion extraction
+    // SDK inicializálása (mint 'analyze')
+    // Hozzáadjuk az egyedi headereket az 'extract' fetch hívásából
+    const openRouter = new OpenRouter({
+      apiKey: config.openrouterApiKey
+    });
+
+    // Az eredeti 'extract' prompt, ami JSON választ kér
     const prompt = `You are an expert dream analyst specializing in identifying recurring motifs, symbols, and emotional patterns in dreams. Analyze the following dream and extract key information.
 
 ${dreamTitle ? `Dream Title: ${dreamTitle}\n` : ''}
@@ -76,58 +85,24 @@ Respond ONLY with valid JSON in this exact format:
   "lucidityLevel": 3
 }`;
 
-    // Call OpenRouter API
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${config.openrouterApiKey}`,
-        'HTTP-Referer': 'https://dreamlytics.app',
-        'X-Title': 'Dreamlytics',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.3, // Lower temperature for more consistent extraction
-        max_tokens: 1500  // Increased from 1000 to prevent cutoff
-      })
+    // API hívás az SDK-val (mint 'analyze')
+    // De az 'extract' paramétereivel (modell, hőmérséklet, tokenek)
+    const completion = await openRouter.chat.send({
+      model: 'meta-llama/llama-3.3-8b-instruct:free',
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      maxTokens: 1500,
+      stream: false
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      
-      // Log the full error for debugging
-      console.error('OpenRouter API Error (Extract):', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData
-      });
-      
-      // Better error messages for common issues
-      let errorMessage = 'Failed to extract motifs and emotions';
-      if (response.status === 429) {
-        errorMessage = 'Rate limit reached. Please wait a moment and try again.';
-      } else if (response.status === 400) {
-        errorMessage = errorData.error?.message || 'Invalid request. Please check your dream content.';
-      } else if (response.status === 401) {
-        errorMessage = 'Invalid API key. Please check your OpenRouter configuration.';
-      } else if (errorData.error?.message) {
-        errorMessage = errorData.error.message;
-      }
-      
-      throw createError({
-        statusCode: response.status,
-        message: errorMessage
-      });
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const content = completion.choices?.[0]?.message?.content;
+    const finishReason = completion.choices?.[0]?.finishReason;
+    const usage = completion.usage;
 
     if (!content) {
       throw createError({
@@ -136,26 +111,37 @@ Respond ONLY with valid JSON in this exact format:
       });
     }
 
-    // Parse the JSON response
+    if (finishReason === 'length') {
+      console.warn('AI response was truncated due to token limit');
+    }
+
+    // JSON parsolás biztonságosan
     let extracted;
     try {
-      // Remove markdown code blocks if present
-      let cleanContent = content.trim();
+      let cleanContent = '';
+      if (typeof content === 'string') {
+        cleanContent = content.trim();
+      } else if (Array.isArray(content)) {
+        cleanContent = content
+          .filter(item => typeof item === 'string')
+          .join(' ')
+          .trim();
+      }
       if (cleanContent.startsWith('```json')) {
         cleanContent = cleanContent.replace(/^```json\n?/, '').replace(/\n?```$/, '');
       } else if (cleanContent.startsWith('```')) {
         cleanContent = cleanContent.replace(/^```\n?/, '').replace(/\n?```$/, '');
       }
-      
       extracted = JSON.parse(cleanContent);
     } catch (e) {
+      console.error('Failed to parse JSON response:', content, e);
       throw createError({
         statusCode: 500,
         message: 'Failed to parse extraction result'
       });
     }
 
-    const processingTime = Date.now() - startTime;
+    // Kinyert adatok feldolgozása (az 'extract'-ból)
     const extractionData = {
       motifs: extracted.motifs || [],
       emotions: extracted.emotions || [],
@@ -166,67 +152,65 @@ Respond ONLY with valid JSON in this exact format:
       lucidityLevel: extracted.lucidityLevel || 0
     };
 
-    const usageData = {
-      promptTokens: data.usage?.prompt_tokens,
-      completionTokens: data.usage?.completion_tokens,
-      totalTokens: data.usage?.total_tokens
-    };
-
-    // Log extraction to database
+    // Sikeres logolás (az 'analyze' mintája alapján)
     try {
-      // @ts-ignore - Mongoose type inference issue
-      await AILog.create({
+      const log = new AILog({ // 'new AILog' és '.save()'
         userId: user.userId,
         dreamId: dreamId || undefined,
-        operation: 'extract',
-        aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+        operation: 'extract', // 'extract'-ból
+        aiModel: 'google/gemini-2.0-flash-exp:free', // A használt modell
         requestData: {
           dreamTitle,
           dreamContent,
-          tags: existingTags
+          tags: existingTags // 'extract' sémából
         },
-        responseData: extractionData,
-        usage: usageData,
+        responseData: extractionData, // A parsolt JSON
+        usage: usage, // Az SDK-ból kapott usage
         success: true,
-        processingTime
+        processingTime: Date.now() - startTime
       });
+      await log.save();
     } catch (logError) {
       console.error('Failed to log extraction:', logError);
     }
 
+    // Sikeres válasz (az 'extract' formátuma)
     return {
       success: true,
       data: extractionData,
-      usage: usageData
+      usage: usage
     };
+
   } catch (error: any) {
-    // Log failed extraction
     const processingTime = Date.now() - startTime;
+
+    // Hibalogolás (az 'analyze' mintája alapján)
     try {
       const user = await requireAuth(event).catch(() => null);
+      const body = await readBody(event).catch(() => ({}));
       if (user) {
-        const body = await readBody(event).catch(() => ({}));
-        // @ts-ignore - Mongoose type inference issue
-        await AILog.create({
+        const log = new AILog({
           userId: user.userId,
           dreamId: body.dreamId || undefined,
-          operation: 'extract',
-          aiModel: 'nousresearch/hermes-3-llama-3.1-405b:free',
+          operation: 'extract', // 'extract'-ból
+          aiModel: 'meta-llama/llama-3.3-8b-instruct:free', // A modell, amit használni akartunk
           requestData: {
             dreamTitle: body.dreamTitle,
             dreamContent: body.dreamContent,
-            tags: body.existingTags
+            tags: body.existingTags // 'extract' sémából
           },
           responseData: {},
           success: false,
           errorMessage: error.message || 'Unknown error',
           processingTime
         });
+        await log.save();
       }
     } catch (logError) {
       console.error('Failed to log error:', logError);
     }
     
+    // Az SDK által dobott (vagy bármilyen más) hiba továbbdobása
     throw error;
   }
 });
