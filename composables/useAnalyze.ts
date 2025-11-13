@@ -19,23 +19,42 @@ export interface AnalyzeResponse {
 export const useAnalyze = () => {
   const analyzing = ref(false);
   const error = ref<string | null>(null);
+  let abortController: AbortController | null = null;
 
   const analyzeDream = async (data: AnalyzeRequest): Promise<string | null> => {
+    // Abort any previous request
+    if (abortController) {
+      abortController.abort();
+    }
+    
+    // Create new abort controller for this request
+    abortController = new AbortController();
+    
     analyzing.value = true;
     error.value = null;
 
     try {
       const response = await $fetch<AnalyzeResponse>('/api/analyze', {
         method: 'POST',
-        body: data
+        body: data,
+        signal: abortController.signal,
+        // Increase timeout to prevent gateway errors
+        timeout: 60000 // 60 seconds
       });
 
       return response.analysis;
     } catch (e: any) {
-      error.value = e.data?.message || 'Failed to analyze dream';
+      // Don't show error if request was aborted (user started new analysis)
+      if (e.name === 'AbortError') {
+        return null;
+      }
+      
+      error.value = e.data?.message || e.message || 'Failed to analyze dream';
+      console.error('Analysis error:', e);
       return null;
     } finally {
       analyzing.value = false;
+      abortController = null;
     }
   };
 

@@ -55,43 +55,69 @@ Please provide a comprehensive yet concise analysis covering:
 
 Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete all sections fully.`;
 
-    // Call OpenRouter API
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${config.openrouterApiKey}`,
-        'HTTP-Referer': 'https://dreamlytics.app',
-        'X-Title': 'Dreamlytics',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'nousresearch/hermes-3-llama-3.1-405b:free',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2500  // Increased from 1500 to prevent cutoff
-      })
-    });
+    // Call OpenRouter API with timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
+    
+    let response;
+    try {
+      response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${config.openrouterApiKey}`,
+          'HTTP-Referer': 'https://dreamlytics.app',
+          'X-Title': 'Dreamlytics',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'nousresearch/hermes-3-llama-3.1-405b:free',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2500  // Increased from 1500 to prevent cutoff
+        }),
+        signal: controller.signal
+      });
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        throw createError({
+          statusCode: 504,
+          message: 'Request timeout. The AI service took too long to respond. Please try again.'
+        });
+      }
+      throw createError({
+        statusCode: 503,
+        message: 'Failed to connect to AI service. Please try again.'
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       
       // Better error messages for common issues
       let errorMessage = 'Failed to analyze dream';
+      let statusCode = response.status;
+      
       if (response.status === 429) {
         errorMessage = 'Rate limit reached. Please wait a moment and try again.';
       } else if (response.status === 401) {
         errorMessage = 'Invalid API key. Please check your OpenRouter configuration.';
+      } else if (response.status === 502 || response.status === 503 || response.status === 504) {
+        errorMessage = 'AI service temporarily unavailable. Please try again in a few seconds.';
+        statusCode = 503;
       } else if (errorData.error?.message) {
         errorMessage = errorData.error.message;
       }
       
       throw createError({
-        statusCode: response.status,
+        statusCode,
         message: errorMessage
       });
     }

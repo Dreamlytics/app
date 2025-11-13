@@ -68,6 +68,10 @@ const tagsInput = ref('');
 const analysis = ref<string | null>(null);
 
 const handleAnalyze = async () => {
+  // Clear previous analysis and error before new request
+  analysis.value = null;
+  error.value = null;
+  
   const tags = tagsInput.value
     ? tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean)
     : [];
