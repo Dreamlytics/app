@@ -7,69 +7,50 @@
             <h3>✨ Dreamlytics</h3>
           </NuxtLink>
 
-          <!-- Hamburger Menu Button -->
-          <button class="hamburger" @click="toggleMenu" :class="{ active: isMenuOpen }" aria-label="Toggle menu">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <div class="nav-actions" :class="{ 'mobile-open': isMenuOpen }">
+          <div class="nav-actions">
             <template v-if="isAuthenticated">
-              <NuxtLink to="/app" class="btn btn-accent" @click="closeMenu">
-                📱 WebView
+              <NuxtLink to="/public/feed" class="btn btn-secondary">
+                🌐 Public Feed
               </NuxtLink>
-              <NuxtLink to="/mobile-test" class="btn btn-accent" @click="closeMenu">
-                🧪 Test
-              </NuxtLink>
-              <NuxtLink to="/public/feed" class="btn btn-secondary" @click="closeMenu">
-                🌐 Feed
-              </NuxtLink>
-              <NuxtLink to="/analytics/motifs" class="btn btn-secondary" @click="closeMenu">
+              <NuxtLink to="/analytics/motifs" class="btn btn-secondary">
                 🎭 Motifs
               </NuxtLink>
-              <NuxtLink to="/analytics/emotions" class="btn btn-secondary" @click="closeMenu">
-                💭 Emotions
+              <NuxtLink to="/analytics/emotions" class="btn btn-secondary">
+                � Emotions
               </NuxtLink>
-              <NuxtLink to="/analytics/frequency" class="btn btn-secondary" @click="closeMenu">
+              <NuxtLink to="/analytics/frequency" class="btn btn-secondary">
                 📊 Frequency
               </NuxtLink>
-              <NuxtLink to="/extract" class="btn btn-secondary" @click="closeMenu">
+              <NuxtLink to="/extract" class="btn btn-secondary">
                 🎭 Extract
               </NuxtLink>
-              <NuxtLink to="/analyze" class="btn btn-accent" @click="closeMenu">
+              <NuxtLink to="/analyze" class="btn btn-accent">
                 🔮 Analyze
               </NuxtLink>
-              <NuxtLink to="/dreams/new" class="btn btn-primary" @click="closeMenu">
-                ➕ New
+              <NuxtLink to="/dreams/new" class="btn btn-primary">
+                ➕ New Dream
               </NuxtLink>
               <button @click="handleLogout" class="btn btn-secondary">
                 Logout
               </button>
             </template>
             <template v-else>
-              <NuxtLink to="/app" class="btn btn-accent" @click="closeMenu">
-                📱 WebView
+              <NuxtLink to="/public/feed" class="btn btn-secondary">
+                🌐 Public Feed
               </NuxtLink>
-              <NuxtLink to="/mobile-test" class="btn btn-accent" @click="closeMenu">
-                🧪 Test
-              </NuxtLink>
-              <NuxtLink to="/public/feed" class="btn btn-secondary" @click="closeMenu">
-                🌐 Feed
-              </NuxtLink>
-              <NuxtLink to="/analytics/motifs" class="btn btn-secondary" @click="closeMenu">
+              <NuxtLink to="/analytics/motifs" class="btn btn-secondary">
                 🎭 Motifs
               </NuxtLink>
-              <NuxtLink to="/analytics/emotions" class="btn btn-secondary" @click="closeMenu">
-                💭 Emotions
+              <NuxtLink to="/analytics/emotions" class="btn btn-secondary">
+                � Emotions
               </NuxtLink>
-              <NuxtLink to="/analytics/frequency" class="btn btn-secondary" @click="closeMenu">
+              <NuxtLink to="/analytics/frequency" class="btn btn-secondary">
                 📊 Frequency
               </NuxtLink>
-              <NuxtLink to="/login" class="btn btn-secondary" @click="closeMenu">
+              <NuxtLink to="/login" class="btn btn-secondary">
                 Login
               </NuxtLink>
-              <NuxtLink to="/register" class="btn btn-primary" @click="closeMenu">
+              <NuxtLink to="/register" class="btn btn-primary">
                 Register
               </NuxtLink>
             </template>
@@ -471,7 +452,7 @@ const handleRefreshInterpretation = async (dream: any) => {
   background: rgba($bg-secondary, 0.8);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 0.75rem 0;
+  padding: $spacing-lg 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -480,47 +461,30 @@ const handleRefreshInterpretation = async (dream: any) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
   }
 
   .logo h3 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.5rem;
   }
 
   .nav-actions {
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    
-    .btn {
-      padding: 0.5rem 0.875rem;
-      font-size: 0.8125rem;
-      font-weight: 500;
-      
-      // Smaller emoji/icon size
-      &::before {
-        font-size: 0.9em;
-      }
-    }
+    gap: 10px;
   }
 }
 
 .hero {
   text-align: center;
-  padding: 3rem 0;
+  padding: $spacing-2xl 0;
 
   h1 {
-    font-size: 2.75rem;
+    font-size: 3.5rem;
     margin-bottom: $spacing-md;
-    line-height: 1.2;
   }
 
   p {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     color: $text-secondary;
   }
 }
@@ -933,7 +897,7 @@ const handleRefreshInterpretation = async (dream: any) => {
     backdrop-filter: blur(20px);
     flex-direction: column;
     padding: 80px 20px 20px;
-    gap: 0.75rem;
+    gap: 12px;
     transition: right 0.3s ease;
     box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
@@ -947,8 +911,8 @@ const handleRefreshInterpretation = async (dream: any) => {
     .btn {
       width: 100%;
       justify-content: center;
-      padding: 0.75rem 1.25rem;
-      font-size: 0.9375rem;
+      padding: 12px 20px;
+      font-size: 1rem;
     }
   }
 

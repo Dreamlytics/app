@@ -8,3 +8,8 @@ dist
 **/._.DS_Store
 .vscode
 .idea
+
+# Capacitor
+ios/
+android/
+.capacitor/

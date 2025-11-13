@@ -9,9 +9,13 @@ export default defineNuxtConfig({
       titleTemplate: '%s | Dreamlytics',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'Track, analyze, and explore your dreams with AI-powered insights' },
         { name: 'theme-color', content: '#8a2be2' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'format-detection', content: 'telephone=no' },
+        { name: 'msapplication-tap-highlight', content: 'no' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
@@ -53,6 +57,18 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    plugins: ['~/server/plugins/mongoose.ts']
+    plugins: ['~/server/plugins/mongoose.ts'],
+    // CORS configuration for mobile API access
+    routeRules: {
+      '/api/**': {
+        cors: true,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+          'Access-Control-Allow-Credentials': 'true',
+        }
+      }
+    }
   }
 });

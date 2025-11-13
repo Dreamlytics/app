@@ -11,6 +11,8 @@ export interface IDream extends Document {
   aiMotifs?: string[];
   aiEmotions?: string[];
   emotionalIntensity?: number;
+  likes: mongoose.Types.ObjectId[];
+  likeCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,6 +64,14 @@ const dreamSchema = new Schema<IDream>({
     max: 10,
     default: null
   },
+  likes: [{
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  likeCount: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -82,5 +92,7 @@ dreamSchema.pre('save', function(next) {
 dreamSchema.index({ userId: 1, createdAt: -1 });
 dreamSchema.index({ tags: 1 });
 dreamSchema.index({ isPublic: 1 });
+dreamSchema.index({ likeCount: -1 });
+dreamSchema.index({ likes: 1 });
 
 export const Dream = mongoose.models.Dream || mongoose.model<IDream>('Dream', dreamSchema);
