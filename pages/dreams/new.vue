@@ -60,7 +60,6 @@
                 type="text"
                 placeholder="Add tags (e.g., water, flight, lucid)"
                 @keydown.enter.prevent="addTag"
-                @keydown.comma.prevent="addTag"
               />
             </div>
             <small>Press Enter or comma to add a tag</small>
@@ -351,8 +350,8 @@ const goBack = () => {
     &::before {
       content: '';
       position: absolute;
-      width: 18px;
-      height: 18px;
+      width: 25px;
+      height: 25px;
       border-radius: 50%;
       top: 3px;
       left: 3px;
@@ -364,7 +363,7 @@ const goBack = () => {
       background: linear-gradient(135deg, $primary, $secondary);
 
       &::before {
-        transform: translateX(24px);
+        transform: translateX(18px);
       }
     }
   }
