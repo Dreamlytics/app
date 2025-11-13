@@ -47,13 +47,13 @@ ${dreamTitle ? `Dream Title: ${dreamTitle}\n` : ''}
 Dream Content: ${dreamContent}
 ${tags && tags.length > 0 ? `Tags: ${tags.join(', ')}\n` : ''}
 
-Please provide:
-1. Overall interpretation
-2. Key symbols and their meanings
-3. Possible emotional themes
-4. Suggestions for reflection
+Please provide a comprehensive yet concise analysis covering:
+1. Overall interpretation (2-3 paragraphs)
+2. Key symbols and their meanings (3-5 symbols)
+3. Possible emotional themes (2-3 themes)
+4. Suggestions for reflection (2-3 suggestions)
 
-Keep the analysis thoughtful, empathetic, and insightful.`;
+Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete all sections fully.`;
 
     // Call OpenRouter API
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -73,7 +73,7 @@ Keep the analysis thoughtful, empathetic, and insightful.`;
           }
         ],
         temperature: 0.7,
-        max_tokens: 1500
+        max_tokens: 2500  // Increased from 1500 to prevent cutoff
       })
     });
 
@@ -98,12 +98,20 @@ Keep the analysis thoughtful, empathetic, and insightful.`;
 
     const data = await response.json();
     const analysis = data.choices?.[0]?.message?.content;
+    const finishReason = data.choices?.[0]?.finish_reason;
 
     if (!analysis) {
       throw createError({
         statusCode: 500,
         message: 'No analysis generated'
       });
+    }
+
+    // Check if response was cut off due to token limit
+    if (finishReason === 'length') {
+      console.warn('AI response was truncated due to max_tokens limit');
+      // Add a note to the analysis that it was truncated
+      // User will still get the response but we log the issue
     }
 
     const processingTime = Date.now() - startTime;

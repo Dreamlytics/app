@@ -94,7 +94,7 @@ Respond ONLY with valid JSON in this exact format:
           }
         ],
         temperature: 0.3, // Lower temperature for more consistent extraction
-        max_tokens: 1000
+        max_tokens: 1500  // Increased from 1000 to prevent cutoff
       })
     });
 
