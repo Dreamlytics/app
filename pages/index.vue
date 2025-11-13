@@ -494,7 +494,6 @@ const handleRefreshInterpretation = async (dream: any) => {
     gap: 0.5rem;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
     
     .btn {
       padding: 0.5rem 0.875rem;
@@ -904,7 +903,7 @@ const handleRefreshInterpretation = async (dream: any) => {
 
   &.active {
     span:nth-child(1) {
-      transform: rotate(45deg) translate(8px, 8px);
+      transform: rotate(45deg) translate(4px, 5px);
     }
 
     span:nth-child(2) {

@@ -140,9 +140,7 @@ input, textarea, select {
 }
 
 // Fix date picker colors for dark theme
-input[type="date"] {
-  color-scheme: dark;
-  
+input[type="date"] {  
   &::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
