@@ -86,7 +86,7 @@ Respond ONLY with valid JSON in this exact format:
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'nousresearch/hermes-3-llama-3.1-405b:free',
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [
           {
             role: 'user',
@@ -101,10 +101,19 @@ Respond ONLY with valid JSON in this exact format:
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       
+      // Log the full error for debugging
+      console.error('OpenRouter API Error (Extract):', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData
+      });
+      
       // Better error messages for common issues
       let errorMessage = 'Failed to extract motifs and emotions';
       if (response.status === 429) {
         errorMessage = 'Rate limit reached. Please wait a moment and try again.';
+      } else if (response.status === 400) {
+        errorMessage = errorData.error?.message || 'Invalid request. Please check your dream content.';
       } else if (response.status === 401) {
         errorMessage = 'Invalid API key. Please check your OpenRouter configuration.';
       } else if (errorData.error?.message) {

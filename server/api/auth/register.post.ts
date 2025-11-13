@@ -29,16 +29,23 @@ export default defineEventHandler(async (event) => {
     
     const { email, password, name } = validation.data;
 
-    // Check if user already exists (email or name)
+    // Check if email already exists
     // @ts-ignore - Mongoose type inference issue
-    const existingUser = await User.findOne({ 
-      $or: [{ email }, { name }]
-    });
-    if (existingUser) {
-      const field = existingUser.email === email ? 'Email' : 'Username';
+    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    if (existingEmail) {
       throw createError({
         statusCode: 400,
-        message: `${field} already exists`
+        message: 'Email already exists'
+      });
+    }
+
+    // Check if username already exists
+    // @ts-ignore - Mongoose type inference issue
+    const existingUsername = await User.findOne({ name });
+    if (existingUsername) {
+      throw createError({
+        statusCode: 400,
+        message: 'Username already exists'
       });
     }
 

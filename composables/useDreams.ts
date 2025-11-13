@@ -32,14 +32,29 @@ export const useDreams = () => {
   const loading = useState<boolean>('dreams-loading', () => false);
   const currentDream = useState<Dream | null>('current-dream', () => null);
 
-  const fetchDreams = async (page = 1, tag?: string) => {
+  const fetchDreams = async (
+    page = 1, 
+    tag?: string, 
+    filterType?: 'tag' | 'motif' | 'emotion', 
+    query?: string
+  ) => {
     loading.value = true;
     try {
-      const query: any = { page };
-      if (tag) query.tag = tag;
+      const queryParams: any = { page };
+      
+      // Legacy tag parameter support
+      if (tag) {
+        queryParams.tag = tag;
+      }
+      
+      // New filter system
+      if (filterType && query) {
+        queryParams.filterType = filterType;
+        queryParams.query = query;
+      }
       
       const response = await $fetch<{ dreams: Dream[] }>('/api/dreams', {
-        query
+        query: queryParams
       });
       dreams.value = response.dreams;
     } catch (error) {
@@ -77,6 +92,13 @@ export const useDreams = () => {
       method: 'PUT',
       body: data
     });
+    
+    // Update currentDream if we're updating the currently viewed dream
+    if (currentDream.value && currentDream.value.id === id) {
+      currentDream.value = response.dream;
+    }
+    
+    // Refresh the dreams list
     await fetchDreams();
     return response.dream;
   };

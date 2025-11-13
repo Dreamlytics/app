@@ -70,7 +70,7 @@ Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete al
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'nousresearch/hermes-3-llama-3.1-405b:free',
+          model: 'google/gemini-2.0-flash-exp:free',
           messages: [
             {
               role: 'user',
@@ -101,12 +101,21 @@ Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete al
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       
+      // Log the full error for debugging
+      console.error('OpenRouter API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData
+      });
+      
       // Better error messages for common issues
       let errorMessage = 'Failed to analyze dream';
       let statusCode = response.status;
       
       if (response.status === 429) {
         errorMessage = 'Rate limit reached. Please wait a moment and try again.';
+      } else if (response.status === 400) {
+        errorMessage = errorData.error?.message || 'Invalid request. Please check your dream content.';
       } else if (response.status === 401) {
         errorMessage = 'Invalid API key. Please check your OpenRouter configuration.';
       } else if (response.status === 502 || response.status === 503 || response.status === 504) {

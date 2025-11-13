@@ -40,20 +40,48 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Check if user owns this dream
-    if (dream.userId.toString() !== user.userId) {
+    const isOwner = dream.userId.toString() === user.userId;
+    
+    // Determine if this is an AI-only update (anyone can add AI analysis)
+    const isAIOnlyUpdate = 
+      updateData.aiAnalysis !== undefined ||
+      updateData.aiMotifs !== undefined ||
+      updateData.aiEmotions !== undefined ||
+      updateData.emotionalIntensity !== undefined;
+    
+    const isCoreUpdate = 
+      updateData.title !== undefined ||
+      updateData.content !== undefined ||
+      updateData.date !== undefined ||
+      updateData.tags !== undefined ||
+      updateData.isPublic !== undefined;
+
+    // Only owner can update core fields
+    if (isCoreUpdate && !isOwner) {
       throw createError({
         statusCode: 403,
-        message: 'Access denied'
+        message: 'Only the dream owner can edit core dream fields'
       });
     }
 
-    // Update dream
-    if (updateData.title !== undefined) dream.title = updateData.title;
-    if (updateData.content !== undefined) dream.content = updateData.content;
-    if (updateData.date !== undefined) dream.date = new Date(updateData.date);
-    if (updateData.tags !== undefined) dream.tags = updateData.tags.map(tag => tag.toLowerCase().trim());
-    if (updateData.isPublic !== undefined) dream.isPublic = updateData.isPublic;
+    // Anyone can add AI analysis (but only to public dreams or their own dreams)
+    if (isAIOnlyUpdate && !isOwner && !dream.isPublic) {
+      throw createError({
+        statusCode: 403,
+        message: 'Cannot add AI analysis to private dreams you don\'t own'
+      });
+    }
+
+    // Update dream (only owner can update core fields)
+    if (isOwner) {
+      if (updateData.title !== undefined) dream.title = updateData.title;
+      if (updateData.content !== undefined) dream.content = updateData.content;
+      if (updateData.date !== undefined) dream.date = new Date(updateData.date);
+      if (updateData.tags !== undefined) dream.tags = updateData.tags.map(tag => tag.toLowerCase().trim());
+      if (updateData.isPublic !== undefined) dream.isPublic = updateData.isPublic;
+    }
+    
+    // Anyone can update AI fields (for public dreams or owned dreams)
     if (updateData.aiAnalysis !== undefined) dream.aiAnalysis = updateData.aiAnalysis;
     if (updateData.aiMotifs !== undefined) dream.aiMotifs = updateData.aiMotifs;
     if (updateData.aiEmotions !== undefined) dream.aiEmotions = updateData.aiEmotions;

@@ -1,6 +1,10 @@
 <template>
   <div class="extract-page gradient-bg">
     <div class="container">
+      <button @click="goBack" class="back-button" title="Return to home page">
+        ← Back to Home
+      </button>
+      
       <div class="card">
         <h1>🎭 Motif & Emotion Extraction</h1>
         <p class="subtitle">AI-powered analysis of dream patterns, symbols, and feelings</p>
@@ -144,9 +148,15 @@ const handleExtract = async () => {
 const getLucidityLabel = (level: number): string => {
   if (level === 0) return 'Non-lucid';
   if (level <= 3) return 'Low awareness';
-  if (level <= 6) return 'Partial lucidity';
-  if (level <= 8) return 'High lucidity';
+  if (level <= 6) return 'Moderate awareness';
+  if (level <= 9) return 'High awareness';
   return 'Fully lucid';
+};
+
+const router = useRouter();
+const goBack = () => {
+  // Navigate directly to home page
+  router.push('/');
 };
 </script>
 
@@ -338,5 +348,39 @@ const getLucidityLabel = (level: number): string => {
   border: 1px solid rgba(255, 68, 68, 0.3);
   border-radius: 8px;
   color: #ff4444;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: $text-primary;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: $primary;
+    color: $primary-light;
+    box-shadow: 0 4px 8px rgba(138, 43, 226, 0.2);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.3);
+  }
 }
 </style>

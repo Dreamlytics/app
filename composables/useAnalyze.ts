@@ -49,9 +49,15 @@ export const useAnalyze = () => {
         return null;
       }
       
-      error.value = e.data?.message || e.message || 'Failed to analyze dream';
+      // Better error messages for rate limits
+      if (e.statusCode === 429 || e.status === 429) {
+        error.value = 'Rate limit reached. Please wait 60 seconds and try again.';
+      } else {
+        error.value = e.data?.message || e.message || 'Failed to analyze dream';
+      }
+      
       console.error('Analysis error:', e);
-      return null;
+      throw error.value; // Throw to propagate to calling function
     } finally {
       analyzing.value = false;
       abortController = null;

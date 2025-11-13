@@ -7,7 +7,9 @@ export default defineEventHandler(async (event) => {
   
   const page = parseInt(query.page as string) || 1;
   const limit = parseInt(query.limit as string) || 20;
-  const tag = query.tag as string | undefined;
+  const tag = query.tag as string | undefined; // Legacy support
+  const filterType = query.filterType as 'tag' | 'motif' | 'emotion' | undefined;
+  const searchQuery = query.query as string | undefined;
   const skip = (page - 1) * limit;
 
   let filter: any = {};
@@ -25,9 +27,58 @@ export default defineEventHandler(async (event) => {
     filter = { isPublic: true };
   }
 
-  // Add tag filter if specified
-  if (tag) {
-    filter.tags = tag.toLowerCase();
+  // Legacy tag filter support (exact match)
+  if (tag && tag.trim()) {
+    const tagFilter = { tags: tag.toLowerCase().trim() };
+    
+    if (filter.$or) {
+      filter = {
+        $and: [
+          { $or: filter.$or },
+          tagFilter
+        ]
+      };
+    } else {
+      filter.tags = tag.toLowerCase().trim();
+    }
+  }
+
+  // New fuzzy filter system
+  if (filterType && searchQuery && searchQuery.trim()) {
+    const trimmedQuery = searchQuery.trim();
+    let fuzzyFilter: any;
+
+    if (filterType === 'tag') {
+      // Fuzzy search in tags array using regex
+      fuzzyFilter = {
+        tags: { $regex: trimmedQuery, $options: 'i' }
+      };
+    } else if (filterType === 'motif') {
+      // Fuzzy search in aiMotifs array
+      fuzzyFilter = {
+        aiMotifs: { $regex: trimmedQuery, $options: 'i' }
+      };
+    } else if (filterType === 'emotion') {
+      // Fuzzy search in aiEmotions array
+      fuzzyFilter = {
+        aiEmotions: { $regex: trimmedQuery, $options: 'i' }
+      };
+    }
+
+    if (fuzzyFilter) {
+      if (filter.$or) {
+        // Combine fuzzy filter with existing $or filter
+        filter = {
+          $and: [
+            { $or: filter.$or },
+            fuzzyFilter
+          ]
+        };
+      } else {
+        // Just add fuzzy filter to existing filter
+        Object.assign(filter, fuzzyFilter);
+      }
+    }
   }
 
   // @ts-ignore - Mongoose type inference issue

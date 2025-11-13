@@ -1,8 +1,8 @@
 <template>
   <div class="analyze-page gradient-bg">
     <div class="container">
-      <button @click="goBack" class="back-button">
-        ← Back
+      <button @click="goBack" class="back-button" title="Return to home page">
+        ← Back to Home
       </button>
       
       <div class="card">
@@ -97,7 +97,8 @@ const formatAnalysis = (text: string) => {
 
 const router = useRouter();
 const goBack = () => {
-  router.back();
+  // Navigate directly to home page instead of browser back
+  router.push('/');
 };
 </script>
 
@@ -114,13 +115,30 @@ const goBack = () => {
   padding: $spacing-sm $spacing-lg;
   border-radius: $radius-lg;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.95rem;
   margin-bottom: $spacing-lg;
   transition: all $transition-base;
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
     background: $bg-tertiary;
     transform: translateX(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-color: $primary;
+  }
+
+  &:active {
+    transform: translateX(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
   }
 }
 

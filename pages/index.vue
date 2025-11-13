@@ -45,13 +45,49 @@
         <div class="section-header">
           <h2>Recent Dreams</h2>
           <div class="filters">
-            <input
-              v-model="searchTag"
-              type="text"
-              placeholder="Filter by tag..."
-              @input="handleFilter"
-              class="filter-input"
-            />
+            <div class="filter-controls">
+              <div class="filter-type-selector">
+                <button 
+                  @click="filterType = 'tag'" 
+                  :class="['filter-type-btn', { active: filterType === 'tag' }]"
+                >
+                  🏷️ Tags
+                </button>
+                <button 
+                  @click="filterType = 'motif'" 
+                  :class="['filter-type-btn', { active: filterType === 'motif' }]"
+                >
+                  🎭 Motifs
+                </button>
+                <button 
+                  @click="filterType = 'emotion'" 
+                  :class="['filter-type-btn', { active: filterType === 'emotion' }]"
+                >
+                  💭 Emotions
+                </button>
+              </div>
+              <div class="filter-input-wrapper">
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  :placeholder="`Search by ${filterType}...`"
+                  @input="handleFilter"
+                  class="filter-input"
+                />
+                <button 
+                  v-if="searchQuery" 
+                  @click="clearFilter" 
+                  class="clear-filter-btn"
+                  title="Clear filter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <span v-if="searchQuery" class="filter-active-badge">
+              Searching {{ filterType }}: <strong>{{ searchQuery }}</strong>
+              <span class="fuzzy-hint">(fuzzy match)</span>
+            </span>
           </div>
         </div>
 
@@ -138,7 +174,8 @@
               <NuxtLink :to="`/dreams/${dream.id}`" class="btn btn-secondary">
                 View
               </NuxtLink>
-              <template v-if="dream.isOwner">
+              <!-- Show analyze button for all users -->
+              <template v-if="isAuthenticated">
                 <button 
                   @click="handleAnalyzeDream(dream)" 
                   class="btn btn-accent" 
@@ -156,6 +193,29 @@
                 >
                   {{ analyzingDreamId === dream.id ? '⏳ Refreshing...' : '🔄 Refresh' }}
                 </button>
+              </template>
+              <template v-else>
+                <!-- Show disabled analyze button with tooltip for non-authenticated users -->
+                <div class="tooltip-wrapper">
+                  <button 
+                    class="btn btn-accent btn-disabled" 
+                    disabled
+                    v-if="!dream.aiAnalysis"
+                  >
+                    🔮 Analyze
+                  </button>
+                  <button 
+                    class="btn btn-accent btn-disabled"
+                    disabled
+                    v-else
+                  >
+                    🔄 Refresh
+                  </button>
+                  <span class="tooltip">Login to analyze dreams</span>
+                </div>
+              </template>
+              <!-- Edit and Delete only for owner -->
+              <template v-if="dream.isOwner">
                 <NuxtLink :to="`/dreams/${dream.id}/edit`" class="btn btn-secondary">
                   Edit
                 </NuxtLink>
@@ -176,14 +236,33 @@ const { user, isAuthenticated, logout } = useAuth();
 const { dreams, loading, fetchDreams, deleteDream } = useDreams();
 const router = useRouter();
 
-const searchTag = ref('');
+const searchQuery = ref('');
+const filterType = ref<'tag' | 'motif' | 'emotion'>('tag');
+let filterTimeout: NodeJS.Timeout | null = null;
 
 onMounted(async () => {
   await fetchDreams();
 });
 
 const handleFilter = () => {
-  fetchDreams(1, searchTag.value || undefined);
+  // Debounce the filter to avoid too many requests
+  if (filterTimeout) {
+    clearTimeout(filterTimeout);
+  }
+  
+  filterTimeout = setTimeout(() => {
+    const trimmedQuery = searchQuery.value.trim();
+    if (trimmedQuery) {
+      fetchDreams(1, undefined, filterType.value, trimmedQuery);
+    } else {
+      fetchDreams(1, undefined);
+    }
+  }, 300); // Wait 300ms after user stops typing
+};
+
+const clearFilter = () => {
+  searchQuery.value = '';
+  fetchDreams(1, undefined);
 };
 
 const handleLogout = async () => {
@@ -243,6 +322,9 @@ const handleAnalyzeDream = async (dream: any) => {
       dreamId: dream.id
     });
 
+    // Wait 2 seconds before making the second API call to avoid rate limits
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // Get motifs and emotions
     const extraction = await extractMotifsAndEmotions({
       dreamContent: dream.content,
@@ -264,7 +346,8 @@ const handleAnalyzeDream = async (dream: any) => {
       await fetchDreams();
     }
   } catch (e: any) {
-    alert('Failed to analyze dream: ' + (e.message || 'Unknown error'));
+    const errorMessage = typeof e === 'string' ? e : (e.message || 'Unknown error');
+    alert('Failed to analyze dream: ' + errorMessage + '\n\nTip: If you see a rate limit error, please wait 60 seconds before trying again.');
   } finally {
     analyzingDreamId.value = null;
   }
@@ -280,7 +363,7 @@ const handleRefreshInterpretation = async (dream: any) => {
   analyzingDreamId.value = dream.id;
   
   try {
-    // Get fresh AI analysis with isRefresh flag
+    // Get fresh AI analysis
     const analysis = await analyzeDream({
       dreamContent: dream.content,
       dreamTitle: dream.title,
@@ -288,6 +371,9 @@ const handleRefreshInterpretation = async (dream: any) => {
       dreamId: dream.id,
       isRefresh: true
     });
+
+    // Wait 2 seconds before making the second API call to avoid rate limits
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Get fresh motifs and emotions
     const extraction = await extractMotifsAndEmotions({
@@ -310,7 +396,8 @@ const handleRefreshInterpretation = async (dream: any) => {
       await fetchDreams();
     }
   } catch (e: any) {
-    alert('Failed to refresh interpretation: ' + (e.message || 'Unknown error'));
+    const errorMessage = typeof e === 'string' ? e : (e.message || 'Unknown error');
+    alert('Failed to refresh interpretation: ' + errorMessage + '\n\nTip: If you see a rate limit error, please wait 60 seconds before trying again.');
   } finally {
     analyzingDreamId.value = null;
   }
@@ -370,16 +457,111 @@ const handleRefreshInterpretation = async (dream: any) => {
 
 .section-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: $spacing-xl;
 
   h2 {
     margin: 0;
+    font-size: 2rem;
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    align-items: flex-end;
+  }
+
+  .filter-controls {
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+  }
+
+  .filter-type-selector {
+    display: flex;
+    gap: 4px;
+    background: rgba($bg-tertiary, 0.5);
+    padding: 4px;
+    border-radius: $radius-lg;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .filter-type-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    &:hover {
+      background: rgba($primary, 0.1);
+      color: $text-secondary;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, $primary, $primary-light);
+      color: white;
+      box-shadow: 0 2px 8px rgba($primary, 0.3);
+    }
+  }
+
+  .filter-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
   }
 
   .filter-input {
     max-width: 300px;
+    padding-right: 35px; // Make room for clear button
+  }
+
+  .clear-filter-btn {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $text-primary;
+    }
+  }
+
+  .filter-active-badge {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    background: rgba($primary, 0.15);
+    padding: 6px 14px;
+    border-radius: $radius-lg;
+    border: 1px solid rgba($primary, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    strong {
+      color: $primary-light;
+      font-weight: 600;
+    }
+
+    .fuzzy-hint {
+      font-size: 0.75rem;
+      color: $text-muted;
+      font-style: italic;
+      margin-left: 4px;
+    }
   }
 }
 
@@ -577,6 +759,51 @@ const handleRefreshInterpretation = async (dream: any) => {
 
       &:hover {
         background: rgba($error, 0.2);
+      }
+    }
+
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .tooltip-wrapper {
+      position: relative;
+      flex: 1;
+
+      .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: $spacing-xs $spacing-sm;
+        border-radius: $radius-sm;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        margin-bottom: 8px;
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 4px solid transparent;
+          border-top-color: rgba(0, 0, 0, 0.9);
+        }
+      }
+
+      &:hover .tooltip {
+        opacity: 1;
+      }
+
+      .btn {
+        width: 100%;
       }
     }
   }
