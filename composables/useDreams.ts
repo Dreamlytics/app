@@ -53,7 +53,7 @@ export const useDreams = () => {
         queryParams.query = query;
       }
       
-      const response = await $fetch<{ dreams: Dream[] }>('/api/dreams', {
+      const response = await $fetch('/api/dreams', {
         query: queryParams
       });
       dreams.value = response.dreams;

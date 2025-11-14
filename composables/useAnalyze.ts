@@ -34,7 +34,7 @@ export const useAnalyze = () => {
     error.value = null;
 
     try {
-      const response = await $fetch<AnalyzeResponse>('/api/analyze', {
+      const response = await $fetch('/api/analyze', {
         method: 'POST',
         body: data,
         signal: abortController.signal,

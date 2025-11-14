@@ -48,7 +48,7 @@ export const useExtract = () => {
     error.value = null;
 
     try {
-      const response = await $fetch<ExtractResponse>('/api/extract', {
+      const response = await $fetch('/api/extract', {
         method: 'POST',
         body: data,
         signal: abortController.signal,

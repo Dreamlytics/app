@@ -116,6 +116,7 @@ const goBack = () => {
   border-radius: $radius-lg;
   cursor: pointer;
   font-weight: 600;
+  margin-bottom: 2rem;
   font-size: 0.95rem;
   margin-bottom: $spacing-lg;
   transition: all $transition-base;

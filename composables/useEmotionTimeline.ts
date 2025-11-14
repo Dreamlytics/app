@@ -37,7 +37,7 @@ export const useEmotionTimeline = () => {
     error.value = null;
 
     try {
-      const response = await $fetch<{ success: boolean; data: EmotionTimelineData }>(
+      const response = await $fetch(
         '/api/analytics/emotion-timeline',
         {
           query: { days }

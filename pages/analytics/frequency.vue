@@ -274,8 +274,7 @@ const selectedWeeks = ref(12);
 const timeOptions = [
   { label: '4 Weeks', value: 4 },
   { label: '12 Weeks', value: 12 },
-  { label: '26 Weeks', value: 26 },
-  { label: '52 Weeks', value: 52 }
+  { label: '26 Weeks', value: 26 }
 ];
 
 const fetchData = async () => {
@@ -411,7 +410,7 @@ const navigateToDream = (dreamId: string) => {
 
   h1 {
     font-size: 2.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: white;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

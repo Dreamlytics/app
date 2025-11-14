@@ -53,7 +53,7 @@ export const useDreamFrequency = () => {
     error.value = null;
 
     try {
-      const response = await $fetch<{ success: boolean; data: DreamFrequencyData }>(
+      const response = await $fetch(
         '/api/analytics/dream-frequency',
         {
           query: { weeks }

@@ -355,6 +355,7 @@ const goBack = () => {
   align-items: center;
   gap: $spacing-xs;
   padding: $spacing-sm $spacing-md;
+  margin-bottom: 2rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;

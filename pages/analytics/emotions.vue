@@ -234,8 +234,7 @@ const selectedDays = ref(30);
 const timeOptions = [
   { label: '7 Days', value: 7 },
   { label: '30 Days', value: 30 },
-  { label: '90 Days', value: 90 },
-  { label: '1 Year', value: 365 }
+  { label: '90 Days', value: 90 }
 ];
 
 const fetchData = async () => {
@@ -407,7 +406,7 @@ const navigateToDream = (dreamId: string) => {
 
   h1 {
     font-size: 2.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: white;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -415,7 +414,7 @@ const navigateToDream = (dreamId: string) => {
   }
 
   .subtitle {
-    color: #666;
+    color: white;
     font-size: 1.1rem;
   }
 }
@@ -502,7 +501,7 @@ const navigateToDream = (dreamId: string) => {
   }
 
   p {
-    color: #666;
+    color: white;
     margin-bottom: 0.5rem;
   }
 
@@ -640,6 +639,7 @@ const navigateToDream = (dreamId: string) => {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    color: goldenrod;
 
     .emotion-bar-item {
       .emotion-label {
