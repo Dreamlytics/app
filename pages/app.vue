@@ -45,19 +45,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import {
-  IonApp,
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  IonButton,
-  IonButtons,
-  IonIcon,
-  IonSpinner,
-} from '@ionic/vue';
-import { refreshOutline, alertCircleOutline } from 'ionicons/icons';
 import '~/assets/styles/ionic.css';
 
 const webviewFrame = ref<HTMLIFrameElement | null>(null);
