@@ -11,7 +11,7 @@ export const useAuth = () => {
   const fetchUser = async () => {
     loading.value = true;
     try {
-      const response = await $fetch<{ user: User | null }>('/api/auth/me');
+      const response = await $fetch('/api/auth/me');
       user.value = response.user;
     } catch (error) {
       user.value = null;
@@ -21,7 +21,7 @@ export const useAuth = () => {
   };
 
   const login = async (emailOrUsername: string, password: string) => {
-    const response = await $fetch<{ success: boolean; user: User }>('/api/auth/login', {
+    const response = await $fetch('/api/auth/login', {
       method: 'POST',
       body: { emailOrUsername, password }
     });
@@ -30,7 +30,7 @@ export const useAuth = () => {
   };
 
   const register = async (email: string, password: string, name: string) => {
-    const response = await $fetch<{ success: boolean; user: User }>('/api/auth/register', {
+    const response = await $fetch('/api/auth/register', {
       method: 'POST',
       body: { email, password, name }
     });

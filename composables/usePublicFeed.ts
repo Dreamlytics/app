@@ -47,7 +47,7 @@ export const usePublicFeed = () => {
         queryParams.filterQuery = query;
       }
 
-      const response = await $fetch<{ success: boolean; data: PublicFeedData }>(
+      const response = await $fetch(
         '/api/public/dreams',
         {
           query: queryParams
@@ -89,7 +89,7 @@ export const usePublicFeed = () => {
         queryParams.filterQuery = filterQuery.value;
       }
 
-      const response = await $fetch<{ success: boolean; data: PublicFeedData }>(
+      const response = await $fetch(
         '/api/public/dreams',
         {
           query: queryParams
@@ -125,7 +125,7 @@ export const usePublicFeed = () => {
 
   const toggleLike = async (dreamId: string) => {
     try {
-      const response = await $fetch<{ success: boolean; data: { dreamId: string; liked: boolean; likeCount: number } }>(
+      const response = await $fetch(
         `/api/dreams/${dreamId}/like`,
         {
           method: 'POST'

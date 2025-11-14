@@ -26,7 +26,7 @@ export const useMotifAnalytics = () => {
     error.value = null;
 
     try {
-      const response = await $fetch<{ success: boolean; data: MotifFrequencyData }>(
+      const response = await $fetch(
         '/api/analytics/motif-frequency',
         {
           query: { limit }

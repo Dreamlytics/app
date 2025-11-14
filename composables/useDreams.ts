@@ -67,7 +67,7 @@ export const useDreams = () => {
   const fetchDream = async (id: string) => {
     loading.value = true;
     try {
-      const response = await $fetch<{ dream: Dream }>(`/api/dreams/${id}`);
+      const response = await $fetch(`/api/dreams/${id}`);
       currentDream.value = response.dream;
       return response.dream;
     } catch (error) {
@@ -79,7 +79,7 @@ export const useDreams = () => {
   };
 
   const createDream = async (data: CreateDreamData) => {
-    const response = await $fetch<{ success: boolean; dream: Dream }>('/api/dreams', {
+    const response = await $fetch('/api/dreams', {
       method: 'POST',
       body: data
     });
@@ -88,7 +88,7 @@ export const useDreams = () => {
   };
 
   const updateDream = async (id: string, data: Partial<CreateDreamData>) => {
-    const response = await $fetch<{ success: boolean; dream: Dream }>(`/api/dreams/${id}`, {
+    const response = await $fetch(`/api/dreams/${id}`, {
       method: 'PUT',
       body: data
     });
