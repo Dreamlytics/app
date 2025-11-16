@@ -8,7 +8,7 @@
           </NuxtLink>
           <div class="nav-actions">
             <NuxtLink to="/analytics/emotions" class="btn btn-secondary">
-              � Emotions
+              😎 Emotions
             </NuxtLink>
             <NuxtLink to="/analytics/frequency" class="btn btn-secondary">
               📊 Frequency
