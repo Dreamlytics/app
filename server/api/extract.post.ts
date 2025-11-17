@@ -1,13 +1,12 @@
 import { z } from 'zod';
-import { OpenRouter } from '@openrouter/sdk'; // Importáljuk az SDK-t
+import { OpenRouter } from '@openrouter/sdk';
 import { requireAuth } from '~/server/utils/auth';
 import { AILog } from '~/server/models/AILog';
 
-// Az eredeti 'extract' séma
 const extractSchema = z.object({
   dreamContent: z.string().min(10),
   dreamTitle: z.string().optional(),
-  existingTags: z.array(z.string()).optional(), // Megtartjuk az 'existingTags'-t
+  existingTags: z.array(z.string()).optional(),
   dreamId: z.string().optional()
 });
 
@@ -15,12 +14,10 @@ export default defineEventHandler(async (event) => {
   const startTime = Date.now();
   
   try {
-    // Authentikáció (mint 'analyze')
     const user = await requireAuth(event);
     
     const body = await readBody(event);
     
-    // Validáció (mint 'analyze', de az 'extract' sémával)
     const validation = extractSchema.safeParse(body);
     if (!validation.success) {
       throw createError({
@@ -30,7 +27,6 @@ export default defineEventHandler(async (event) => {
       });
     }
     
-    // Változók az 'extract' sémából
     const { dreamContent, dreamTitle, existingTags, dreamId } = validation.data;
     const config = useRuntimeConfig();
     
@@ -41,13 +37,10 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // SDK inicializálása (mint 'analyze')
-    // Hozzáadjuk az egyedi headereket az 'extract' fetch hívásából
     const openRouter = new OpenRouter({
       apiKey: config.openrouterApiKey
     });
 
-    // Az eredeti 'extract' prompt, ami JSON választ kér
     const prompt = `You are an expert dream analyst specializing in identifying recurring motifs, symbols, and emotional patterns in dreams. Analyze the following dream and extract key information.
 
 ${dreamTitle ? `Dream Title: ${dreamTitle}\n` : ''}
@@ -85,10 +78,8 @@ Respond ONLY with valid JSON in this exact format:
   "lucidityLevel": 3
 }`;
 
-    // API hívás az SDK-val (mint 'analyze')
-    // De az 'extract' paramétereivel (modell, hőmérséklet, tokenek)
     const completion = await openRouter.chat.send({
-      model: 'meta-llama/llama-3.3-8b-instruct:free',
+      model: 'openai/gpt-oss-20b:free',
       messages: [
         {
           role: 'user',
@@ -115,7 +106,6 @@ Respond ONLY with valid JSON in this exact format:
       console.warn('AI response was truncated due to token limit');
     }
 
-    // JSON parsolás biztonságosan
     let extracted;
     try {
       let cleanContent = '';
@@ -141,7 +131,6 @@ Respond ONLY with valid JSON in this exact format:
       });
     }
 
-    // Kinyert adatok feldolgozása (az 'extract'-ból)
     const extractionData = {
       motifs: extracted.motifs || [],
       emotions: extracted.emotions || [],
@@ -152,20 +141,19 @@ Respond ONLY with valid JSON in this exact format:
       lucidityLevel: extracted.lucidityLevel || 0
     };
 
-    // Sikeres logolás (az 'analyze' mintája alapján)
     try {
-      const log = new AILog({ // 'new AILog' és '.save()'
+      const log = new AILog({
         userId: user.userId,
         dreamId: dreamId || undefined,
-        operation: 'extract', // 'extract'-ból
-        aiModel: 'google/gemini-2.0-flash-exp:free', // A használt modell
+        operation: 'extract',
+        aiModel: 'openai/gpt-oss-20b:free',
         requestData: {
           dreamTitle,
           dreamContent,
-          tags: existingTags // 'extract' sémából
+          tags: existingTags
         },
-        responseData: extractionData, // A parsolt JSON
-        usage: usage, // Az SDK-ból kapott usage
+        responseData: extractionData,
+        usage: usage,
         success: true,
         processingTime: Date.now() - startTime
       });
@@ -174,7 +162,6 @@ Respond ONLY with valid JSON in this exact format:
       console.error('Failed to log extraction:', logError);
     }
 
-    // Sikeres válasz (az 'extract' formátuma)
     return {
       success: true,
       data: extractionData,
@@ -184,7 +171,6 @@ Respond ONLY with valid JSON in this exact format:
   } catch (error: any) {
     const processingTime = Date.now() - startTime;
 
-    // Hibalogolás (az 'analyze' mintája alapján)
     try {
       const user = await requireAuth(event).catch(() => null);
       const body = await readBody(event).catch(() => ({}));
@@ -192,12 +178,12 @@ Respond ONLY with valid JSON in this exact format:
         const log = new AILog({
           userId: user.userId,
           dreamId: body.dreamId || undefined,
-          operation: 'extract', // 'extract'-ból
-          aiModel: 'meta-llama/llama-3.3-8b-instruct:free', // A modell, amit használni akartunk
+          operation: 'extract',
+          aiModel: 'openai/gpt-oss-20b:free',
           requestData: {
             dreamTitle: body.dreamTitle,
             dreamContent: body.dreamContent,
-            tags: body.existingTags // 'extract' sémából
+            tags: body.existingTags
           },
           responseData: {},
           success: false,
@@ -210,7 +196,6 @@ Respond ONLY with valid JSON in this exact format:
       console.error('Failed to log error:', logError);
     }
     
-    // Az SDK által dobott (vagy bármilyen más) hiba továbbdobása
     throw error;
   }
 });

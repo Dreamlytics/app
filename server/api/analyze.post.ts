@@ -60,7 +60,7 @@ Please provide a comprehensive yet concise analysis covering:
 Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete all sections fully.`;
 
     const completion = await openRouter.chat.send({
-      model: 'meta-llama/llama-3.3-8b-instruct:free',
+      model: 'openai/gpt-oss-20b:free',
       messages: [{ role: 'user', content: prompt }],
       stream: false
     });
@@ -83,7 +83,7 @@ Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete al
         userId: user.userId,
         dreamId: dreamId || undefined,
         operation: isRefresh ? 'refresh' : 'analyze',
-  aiModel: 'meta-llama/llama-3.3-8b-instruct:free',
+        aiModel: 'openai/gpt-oss-20b:free',
         requestData: { dreamTitle, dreamContent, tags },
         responseData: { analysis },
         usage,
@@ -107,7 +107,7 @@ Keep the analysis thoughtful, empathetic, and insightful. Ensure you complete al
           userId: user.userId,
           dreamId: body.dreamId || undefined,
           operation: 'analyze',
-          aiModel: 'meta-llama/llama-3.3-8b-instruct:free',
+          aiModel: 'openai/gpt-oss-20b:free',
           requestData: {
             dreamTitle: body.dreamTitle,
             dreamContent: body.dreamContent,
