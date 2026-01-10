@@ -37,9 +37,7 @@
               <NuxtLink to="/dreams/new" class="btn btn-primary" @click="closeMenu">
                 ➕ New
               </NuxtLink>
-              <button @click="handleLogout" class="btn btn-secondary">
-                Logout
-              </button>
+              <UserMenu @click="closeMenu" />
             </template>
             <template v-else>
               <NuxtLink to="/public/feed" class="btn btn-secondary" @click="closeMenu">

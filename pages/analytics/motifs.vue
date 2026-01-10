@@ -8,7 +8,7 @@
           </NuxtLink>
           <div class="nav-actions">
             <NuxtLink to="/analytics/emotions" class="btn btn-secondary">
-              😎 Emotions
+              � Emotions
             </NuxtLink>
             <NuxtLink to="/analytics/frequency" class="btn btn-secondary">
               📊 Frequency
@@ -16,6 +16,7 @@
             <NuxtLink to="/" class="btn btn-secondary">
               ← Back to Dreams
             </NuxtLink>
+            <UserMenu />
           </div>
         </div>
       </div>
@@ -534,6 +535,19 @@ useHead({
 }
 
 @media (max-width: $breakpoint-md) {
+  .navbar {
+    .nav-actions {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+
   .page-header h1 {
     font-size: 2rem;
   }
@@ -558,6 +572,23 @@ useHead({
       .btn {
         width: 100%;
       }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    .nav-actions {
+      gap: 0.4rem;
+    }
+
+    .btn {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .logo h3 {
+      font-size: 1.2rem;
     }
   }
 }

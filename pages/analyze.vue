@@ -1,9 +1,21 @@
 <template>
   <div class="analyze-page gradient-bg">
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-content">
+          <NuxtLink to="/" class="logo">
+            <h3>✨ Dreamlytics</h3>
+          </NuxtLink>
+          <div class="nav-actions">
+            <NuxtLink to="/" class="btn btn-secondary">
+              ← Back to Home
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </nav>
+
     <div class="container">
-      <button @click="goBack" class="back-button" title="Return to home page">
-        ← Back to Home
-      </button>
       
       <div class="card">
         <h1>🔮 Dream Analysis</h1>
@@ -105,7 +117,44 @@ const goBack = () => {
 <style scoped lang="scss">
 .analyze-page {
   min-height: 100vh;
-  padding: $spacing-xl;
+  padding-bottom: 4rem;
+}
+
+.navbar {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 2rem;
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  text-decoration: none;
+  color: white;
+}
+
+.logo h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .back-button {

@@ -3,9 +3,15 @@
     <nav class="navbar">
       <div class="container">
         <div class="nav-content">
-          <NuxtLink to="/" class="btn btn-secondary">
-            ← Back
+          <NuxtLink to="/" class="logo">
+            <h3>✨ Dreamlytics</h3>
           </NuxtLink>
+          <div class="nav-actions">
+            <NuxtLink to="/" class="btn btn-secondary">
+              ← Back
+            </NuxtLink>
+            <UserMenu />
+          </div>
         </div>
       </div>
     </nav>

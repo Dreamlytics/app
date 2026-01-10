@@ -1,5 +1,21 @@
 <template>
   <div class="dream-form-page gradient-bg">
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-content">
+          <NuxtLink to="/" class="logo">
+            <h3>✨ Dreamlytics</h3>
+          </NuxtLink>
+          <div class="nav-actions">
+            <NuxtLink to="/" class="btn btn-secondary">
+              ← Back
+            </NuxtLink>
+            <UserMenu />
+          </div>
+        </div>
+      </div>
+    </nav>
+
     <div class="container">
       <div class="dream-form-card card">
         <h2>{{ isEditing ? '✏️ Edit Dream' : '✨ Record a Dream' }}</h2>
@@ -143,7 +159,7 @@ onMounted(async () => {
 
   if (isEditing.value) {
     try {
-      const dream = await fetchDream(route.params.id as string);
+      const dream: any = await fetchDream(route.params.id as string);
       form.title = dream.title;
       form.date = new Date(dream.date).toISOString().split('T')[0];
       form.content = dream.content;
@@ -233,8 +249,50 @@ const goBack = () => {
 <style scoped lang="scss">
 .dream-form-page {
   min-height: 100vh;
-  padding: $spacing-xl;
-  padding-top: 100px;
+  padding-bottom: 4rem;
+}
+
+.navbar {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 2rem;
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  text-decoration: none;
+  color: white;
+}
+
+.logo h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .dream-form-card {

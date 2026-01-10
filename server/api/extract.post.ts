@@ -79,7 +79,7 @@ Respond ONLY with valid JSON in this exact format:
 }`;
 
     const completion = await openRouter.chat.send({
-      model: 'openai/gpt-oss-20b:free',
+      model: 'xiaomi/mimo-v2-flash:free',
       messages: [
         {
           role: 'user',
@@ -146,7 +146,7 @@ Respond ONLY with valid JSON in this exact format:
         userId: user.userId,
         dreamId: dreamId || undefined,
         operation: 'extract',
-        aiModel: 'openai/gpt-oss-20b:free',
+        aiModel: 'xiaomi/mimo-v2-flash:free',
         requestData: {
           dreamTitle,
           dreamContent,
@@ -179,7 +179,7 @@ Respond ONLY with valid JSON in this exact format:
           userId: user.userId,
           dreamId: body.dreamId || undefined,
           operation: 'extract',
-          aiModel: 'openai/gpt-oss-20b:free',
+          aiModel: 'xiaomi/mimo-v2-flash:free',
           requestData: {
             dreamTitle: body.dreamTitle,
             dreamContent: body.dreamContent,

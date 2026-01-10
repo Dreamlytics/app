@@ -16,6 +16,7 @@
             <NuxtLink to="/" class="btn btn-secondary">
               ← Back to Dreams
             </NuxtLink>
+            <UserMenu variant="grey" />
           </div>
         </div>
       </div>
@@ -767,6 +768,19 @@ const navigateToDream = (dreamId: string) => {
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    .nav-actions {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      font-size: 0.85rem;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+
   .emotion-timeline-page {
     padding: 1rem;
   }
@@ -786,6 +800,23 @@ const navigateToDream = (dreamId: string) => {
     .timeline-date {
       flex-direction: row !important;
       width: 100%;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    .nav-actions {
+      gap: 0.4rem;
+    }
+
+    .btn {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .logo h3 {
+      font-size: 1.2rem;
     }
   }
 }

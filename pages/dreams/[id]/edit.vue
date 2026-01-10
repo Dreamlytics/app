@@ -1,5 +1,21 @@
 <template>
   <div class="dream-form-page gradient-bg">
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-content">
+          <NuxtLink to="/" class="logo">
+            <h3>✨ Dreamlytics</h3>
+          </NuxtLink>
+          <div class="nav-actions">
+            <NuxtLink to="/" class="btn btn-secondary">
+              ← Back
+            </NuxtLink>
+            <UserMenu />
+          </div>
+        </div>
+      </div>
+    </nav>
+
     <div class="container">
       <div class="dream-form-card card">
         <h2>✏️ Edit Dream</h2>
@@ -120,7 +136,7 @@ onMounted(async () => {
   }
 
   try {
-    const dream = await fetchDream(route.params.id as string);
+    const dream: any = await fetchDream(route.params.id as string);
     if (!dream.isOwner) {
       router.push('/');
       return;
